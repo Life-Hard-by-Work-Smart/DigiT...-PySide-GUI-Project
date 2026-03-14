@@ -616,35 +616,6 @@ class MainWindow(QMainWindow):
         self.add_new_session()
         
         main_layout.addWidget(self.session_tabs)
-        
-
-
-        ## nepoužívá se / nedává smysl 
-        # # ===== BOTTOM BAR =====
-        # bottom_frame = QFrame()
-        # bottom_frame.setStyleSheet("border-top: 1px solid #ccc; background-color: #f5f5f5;")
-        # bottom_layout = QHBoxLayout(bottom_frame)
-        # bottom_layout.setContentsMargins(10, 5, 10, 5)
-        
-        # bottom_layout.addStretch()
-        
-        # btn_submit = QPushButton("Aquit")
-        # btn_submit.setFixedWidth(100)
-        # btn_submit.setStyleSheet("""
-        #     QPushButton {
-        #         background-color: #4CAF50;
-        #         color: white;
-        #         font-weight: bold;
-        #         border-radius: 4px;
-        #         padding: 5px;
-        #     }
-        #     QPushButton:hover {
-        #         background-color: #45a049;
-        #     }
-        # """)
-        # bottom_layout.addWidget(btn_submit)
-        
-        # main_layout.addWidget(bottom_frame)
     
     def add_new_session(self):
         """Přidej novou session jako tab"""
