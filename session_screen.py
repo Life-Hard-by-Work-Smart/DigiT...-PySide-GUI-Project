@@ -1,26 +1,11 @@
-
-from points_panel import *
-from drag_drop_frame import *
-
-
-import sys
-from dataclasses import dataclass, field
 from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
     QLabel,
     QFrame,
-    QTabWidget,
-    QListWidget,
-    QListWidgetItem,
-    QTabBar,
     QStackedWidget,
-    QMenu,
-    QMenuBar,
     QFileDialog,
     QScrollArea,
     QComboBox
@@ -29,6 +14,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap, QDragEnterEvent, QDropEvent, QColor
 
+
+from drag_drop_frame import DragDropFrame
+from points_panel import VertebralPointsPanel
 
 
 
@@ -595,73 +583,3 @@ class SessionScreen(QWidget):
             self.menu_buttons["Body"].setEnabled(False)
             self.menu_buttons["Výsledky"].setEnabled(False)
             self.points_confirmed = False
-
-
-
-
-
-
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("DigiTech-Spiner")
-        self.resize(1400, 800)
-        self.session_counter = 0
-
-        # ===== MENU BAR =====
-        menubar = self.menuBar()
-
-        # File menu
-        file_menu = menubar.addMenu("File")
-        new_blank_session_action = file_menu.addAction("New Blank Session")
-        new_blank_session_action.triggered.connect(self.add_new_session)
-        new_session_action = file_menu.addAction("New Session")
-        new_session_action.triggered.connect(self.add_new_session)
-        file_menu.addSeparator()
-        exit_action = file_menu.addAction("Exit")
-        exit_action.triggered.connect(self.close)
-
-        # Help menu
-        help_menu = menubar.addMenu("Help")
-        help_menu.addAction("About")
-        help_menu.addAction("Documentation")
-
-        # ===== MAIN WIDGET =====
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-
-        # ===== SESSION TABS (jako v prohlížeči) =====
-        self.session_tabs = QTabWidget()
-        self.session_tabs.setTabsClosable(True)
-        self.session_tabs.tabCloseRequested.connect(self.close_session_tab)
-
-        # Přidej první session
-        self.add_new_session()
-
-        main_layout.addWidget(self.session_tabs)
-
-    def add_new_session(self):
-        """Přidej novou session jako tab"""
-        self.session_counter += 1
-        session_name = f"Session {self.session_counter}"
-        session_widget = SessionScreen(session_name)
-        self.session_tabs.addTab(session_widget, session_name)
-        self.session_tabs.setCurrentIndex(self.session_tabs.count() - 1)
-
-    def close_session_tab(self, index):
-        """Zavři session tab"""
-        if self.session_tabs.count() > 1:
-            self.session_tabs.removeTab(index)
-        else:
-            self.close()
-            pass
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
