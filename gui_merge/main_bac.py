@@ -1,255 +1,27 @@
 import sys
-from dataclasses import dataclass, field
 from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QPushButton,
-    QLabel,
-    QFrame,
-    QTabWidget,
-    QListWidget,
-    QListWidgetItem,
-    QTabBar,
-    QStackedWidget,
-    QMenu,
-    QMenuBar,
-    QFileDialog,
-    QScrollArea,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QPushButton, QLabel, QFrame, QTabWidget, QListWidget, QListWidgetItem,
+    QTabBar, QStackedWidget, QMenu, QMenuBar, QFileDialog, QScrollArea,
     QComboBox
 )
-
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QIcon, QPixmap, QDragEnterEvent, QDropEvent, QColor
-
-@dataclass
-class Point:
-    """Souřadnice bodu"""
-
-    x: float = 0.0
-    y: float = 0.0
-
-
-@dataclass
-class VertebralPoints:
-    """Body rohů obratlů (LT, RT, LB, RB - Left/Right Top/Bottom)"""
-
-    name: str  # C2, C3, C4, ...
-    lt: Point = field(default_factory=Point)  # Left Top
-    rt: Point = field(default_factory=Point)  # Right Top
-    lb: Point = field(default_factory=Point)  # Left Bottom
-    rb: Point = field(default_factory=Point)  # Right Bottom
-
-
-class VertebralPointItem(QFrame):
-    """Widget pro zobrazení jednoho obratlů s jeho body"""
-
-    def __init__(self, vertebral: VertebralPoints):
-        super().__init__()
-        self.vertebral = vertebral
-        self.setStyleSheet(
-            "background-color: #e8e8e8; border-radius: 10px; padding: 5px;"
-        )
-
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(8, 6, 8, 6)
-        layout.setSpacing(10)
-
-        # Levá strana: Souřadnice bodů
-        left_layout = QVBoxLayout()
-        left_layout.setSpacing(4)
-
-        # Nadpis obratlů
-        title_label = QLabel(vertebral.name)
-        title_label.setStyleSheet(
-            "font-weight: bold; font-size: 18px; color: #333; margin-bottom: 4px;"
-        )
-        left_layout.addWidget(title_label)
-
-        # Body s barvnými indikátory
-        points_data = [
-            ("LT", vertebral.lt, QColor(255, 192, 203)),  # Pink
-            ("RT", vertebral.rt, QColor(144, 238, 144)),  # Light Green
-            ("LB", vertebral.lb, QColor(173, 216, 230)),  # Light Blue
-            ("RB", vertebral.rb, QColor(255, 255, 153)),  # Light Yellow
-        ]
-
-        for point_name, point, color in points_data:
-            row_layout = QHBoxLayout()
-            row_layout.setSpacing(6)
-            row_layout.setContentsMargins(0, 0, 0, 0)
-
-            # Barevný indikátor
-            indicator = QFrame()
-            indicator.setFixedSize(16, 16)
-            indicator.setStyleSheet(
-                f"background-color: {color.name()}; border: 1px solid #999; border-radius: 8px;"
-            )
-            row_layout.addWidget(indicator)
-
-            # Text s souřadnicemi
-            text = f"{point_name}: X: {point.x:.2f} Y: {point.y:.2f}"
-            label = QLabel(text)
-            label.setStyleSheet("color: #666; font-size: 12px;")
-            row_layout.addWidget(label)
-            row_layout.addStretch()
-
-            left_layout.addLayout(row_layout)
-
-        layout.addLayout(left_layout, stretch=1)
-
-    def update_data(self, vertebral: VertebralPoints):
-        """Aktualizuj data obratlů"""
-        self.vertebral = vertebral
-        self.update()
-
-
-class VertebralPointsPanel(QFrame):
-    """Panel pro zobrazení všech bodů obratlů"""
-
-    def __init__(self):
-        super().__init__()
-        self.vertebrals: list[VertebralPoints] = []
-        self.init_ui()
-        # Inicializuj s ukázkovými daty
-        self.set_sample_data()
-
-    def init_ui(self):
-        """Inicializuj UI"""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
-
-        # Scrollovatelná oblast pro body
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("""
-            QScrollArea {
-                border: none;
-                background-color: white;
-            }
-            QScrollBar:vertical {
-                background-color: transparent;
-                width: 10px;
-                margin: 0px 0px 0px 0px;
-            }
-            QScrollBar::handle:vertical {
-                background-color: #d0d0d0;
-                border-radius: 5px;
-                min-height: 20px;
-                margin: 2px 2px 2px 2px;
-                border: none;
-            }
-            QScrollBar::handle:vertical:hover {
-                background-color: #999;
-            }
-            QScrollBar::handle:vertical:pressed {
-                background-color: #666;
-            }
-            QScrollBar::sub-line:vertical {
-                border: none;
-                background: none;
-            }
-            QScrollBar::add-line:vertical {
-                border: none;
-                background: none;
-            }
-        """)
-
-        # Container pro položky
-        self.container_widget = QWidget()
-        self.container_widget.setStyleSheet("background-color: white;")
-        self.container_layout = QVBoxLayout(self.container_widget)
-        self.container_layout.setSpacing(12)
-        self.container_layout.setContentsMargins(8, 8, 8, 8)
-
-        scroll_area.setWidget(self.container_widget)
-        layout.addWidget(scroll_area, stretch=1)
-
-    def set_sample_data(self):
-        """Nastav ukázková data pro testování"""
-        sample_vertebrals = [
-            VertebralPoints(
-                name="C2",
-                lt=Point(125.50, 180.75),
-                rt=Point(225.30, 182.10),
-                lb=Point(128.80, 265.40),
-                rb=Point(222.60, 267.85),
-            ),
-            VertebralPoints(
-                name="C3",
-                lt=Point(130.20, 275.60),
-                rt=Point(220.90, 278.30),
-                lb=Point(132.50, 360.15),
-                rb=Point(218.75, 362.95),
-            ),
-            VertebralPoints(
-                name="C4",
-                lt=Point(128.95, 370.10),
-                rt=Point(222.15, 372.80),
-                lb=Point(131.60, 455.25),
-                rb=Point(219.40, 458.05),
-            ),
-            VertebralPoints(
-                name="C5",
-                lt=Point(129.75, 465.50),
-                rt=Point(221.25, 468.20),
-                lb=Point(132.35, 550.30),
-                rb=Point(218.85, 553.10),
-            ),
-            VertebralPoints(
-                name="C6",
-                lt=Point(129.75, 465.50),
-                rt=Point(221.25, 468.20),
-                lb=Point(132.35, 550.30),
-                rb=Point(218.85, 553.10),
-            ),
-            VertebralPoints(
-                name="C7",
-                lt=Point(129.75, 465.50),
-                rt=Point(221.25, 468.20),
-                lb=Point(132.35, 550.30),
-                rb=Point(218.85, 553.10),
-            ),
-        ]
-        self.set_vertebral_data(sample_vertebrals)
-
-    def set_vertebral_data(self, vertebrals: list[VertebralPoints]):
-        """Nastav data obratlů a aktualizuj zobrazení"""
-        self.vertebrals = vertebrals
-        self.refresh_display()
-
-    def refresh_display(self):
-        """Obnovit zobrazení všech obratlů"""
-        # Vyčistit starý obsah
-        while self.container_layout.count():
-            item = self.container_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-
-        # Přidat nové položky
-        for vertebral in self.vertebrals:
-            item = VertebralPointItem(vertebral)
-            self.container_layout.addWidget(item)
-
-        self.container_layout.addStretch()
+from PySide6.QtGui import QIcon, QPixmap, QDragEnterEvent, QDropEvent
 
 class DragDropFrame(QFrame):
     """Frame s drag-and-drop podporou pro snímky"""
     image_loaded = Signal(str)  # Signal - emituje cestu ke snímku
-
+    
     def __init__(self):
         super().__init__()
         self.setAcceptDrops(True)
         self.image_path = None
-
+    
     def dragEnterEvent(self, event: QDragEnterEvent):
         """Když uživatel táhne soubor nad frame"""
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
-
+    
     def dropEvent(self, event: QDropEvent):
         """Když uživatel pustí soubor na frame"""
         files = [url.toLocalFile() for url in event.mimeData().urls()]
@@ -264,24 +36,22 @@ class DragDropFrame(QFrame):
         self.image_path = file_path
         self.image_loaded.emit(file_path)
 
-# SESSION conflict ===
-
 class SessionScreen(QWidget):
     """Jednotlivá session obrazovka s X-ray a workflow step panelem"""
     def __init__(self, session_name):
         super().__init__()
         self.session_name = session_name
-
+        
         # State variables
         self.image_loaded = False
         self.image_confirmed = False  # Nový stav - potvrzení snímku
         self.inference_completed = False
         self.points_confirmed = False
-
+        
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
-
+        
         # Drag-drop frame
         self.xray_frame = DragDropFrame()
         self.xray_frame.image_loaded.connect(self.on_image_loaded)
@@ -290,7 +60,7 @@ class SessionScreen(QWidget):
         xray_layout = QVBoxLayout(self.xray_frame)
         xray_layout.setContentsMargins(0, 0, 0, 0)
         xray_layout.setSpacing(0)
-
+        
         # Scroll area pro snímek
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -298,21 +68,21 @@ class SessionScreen(QWidget):
         self.image_display.setAlignment(Qt.AlignCenter)
         self.image_display.setStyleSheet("background-color: #f5f5f5;")
         scroll_area.setWidget(self.image_display)
-
+        
         # Widget pro text a tlačítko (overlay)
         overlay_widget = QWidget()
         overlay_layout = QVBoxLayout(overlay_widget)
         overlay_layout.setContentsMargins(10, 10, 10, 10)
         overlay_layout.addStretch()
-
+        
         # Top bar - text a tlačítko pro výběr souboru (vycentrovaný)
         top_bar = QHBoxLayout()
         top_bar.addStretch()
-
+        
         self.xray_label = QLabel("Drag a drop snímek sem")
         self.xray_label.setStyleSheet("color: #666; font-size: 12px; font-weight: bold;")
         top_bar.addWidget(self.xray_label)
-
+        
         # Malé tlačítko vedle textu
         self.open_file_btn = QPushButton("📁")
         self.open_file_btn.setFixedSize(32, 32)
@@ -333,33 +103,33 @@ class SessionScreen(QWidget):
         self.open_file_btn.clicked.connect(self.on_open_file_dialog)
         top_bar.addWidget(self.open_file_btn)
         top_bar.addStretch()
-
+        
         overlay_layout.addLayout(top_bar)
         overlay_layout.addStretch()
-
+        
         # Stacked widget - zobrazuj buď scroll_area nebo overlay
         self.xray_stack = QStackedWidget()
         self.xray_stack.addWidget(scroll_area)  # Index 0
         self.xray_stack.addWidget(overlay_widget)  # Index 1
         self.xray_stack.setCurrentIndex(1)  # Zobraz overlay na začátku
+        
         xray_layout.addWidget(self.xray_stack, stretch=1)
+        
         layout.addWidget(self.xray_frame, stretch=1)
-
+        
         # ===== RIGHT: WORKFLOW STEP PANEL =====
         workflow_frame = QFrame()
-        workflow_frame.setStyleSheet(
-            "border: 1px solid #ccc; background-color: #f9f9f9;"
-        )
-        workflow_frame.setFixedWidth(300)
+        workflow_frame.setStyleSheet("border: 1px solid #ccc; background-color: #f9f9f9;")
+        workflow_frame.setFixedWidth(250)
         workflow_layout = QVBoxLayout(workflow_frame)
         workflow_layout.setContentsMargins(5, 5, 5, 5)
         workflow_layout.setSpacing(5)
-
+        
         # Top menu bar (Settings, Body, Results)
         menu_layout = QHBoxLayout()
         self.menu_buttons = {}
         menu_items = ["Nastavení", "Body", "Výsledky"]
-
+        
         for i, menu_item in enumerate(menu_items):
             btn = QPushButton(menu_item)
             btn.setFixedHeight(28)
@@ -370,7 +140,7 @@ class SessionScreen(QWidget):
                 btn.setEnabled(False)
             elif i == 2:  # Výsledky - zakázány do potvrzení bodů
                 btn.setEnabled(False)
-
+            
             btn.setStyleSheet("""
                 QPushButton {
                     background-color: #e0e0e0;
@@ -393,29 +163,24 @@ class SessionScreen(QWidget):
             btn.clicked.connect(lambda checked, idx=i: self.show_content(idx))
             self.menu_buttons[menu_item] = btn
             menu_layout.addWidget(btn)
-
+        
         workflow_layout.addLayout(menu_layout)
-
+        
         # ===== STACKED WIDGET PRO OBSAH =====
         self.stacked_widget = QStackedWidget()
-
-
+        
         # Content 1: Nastavení
         content_frame_1 = QFrame()
-        content_frame_1.setStyleSheet(
-            "border: 1px solid #ddd;" \
-            " background-color: white;"
-        )
+        content_frame_1.setStyleSheet("border: 1px solid #ddd; background-color: white;")
         content_layout_1 = QVBoxLayout(content_frame_1)
-
         content_label_1 = QLabel("Výběr snímku")
         content_label_1.setAlignment(Qt.AlignCenter)
         content_label_1.setStyleSheet("color: #666; font-size: 12px; font-weight: bold;")
         content_layout_1.addWidget(content_label_1)
-
+        
         # 2 tlačítka - Smazat snímek a Potvrdit snímek
         buttons_layout = QHBoxLayout()
-
+        
         self.delete_image_btn = QPushButton("�️ Smazat")
         self.delete_image_btn.setFixedHeight(28)
         self.delete_image_btn.setCursor(Qt.PointingHandCursor)
@@ -443,7 +208,7 @@ class SessionScreen(QWidget):
         """)
         self.delete_image_btn.clicked.connect(self.on_delete_image_clicked)
         buttons_layout.addWidget(self.delete_image_btn)
-
+        
         self.confirm_image_btn = QPushButton("✓ Potvrdit")
         self.confirm_image_btn.setFixedHeight(28)
         self.confirm_image_btn.setCursor(Qt.PointingHandCursor)
@@ -471,26 +236,26 @@ class SessionScreen(QWidget):
         """)
         self.confirm_image_btn.clicked.connect(self.on_confirm_image_clicked)
         buttons_layout.addWidget(self.confirm_image_btn)
-
+        
         content_layout_1.addLayout(buttons_layout)
-
+        
         # Spacer
         content_layout_1.addSpacing(10)
-
+        
         # Separator line
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
         content_layout_1.addWidget(separator)
-
+        
         # Spacer
         content_layout_1.addSpacing(10)
-
+        
         # Dropdown pro výběr modelu (disabled dokud se nepotvrdí snímek)
         model_label = QLabel("Model:")
         model_label.setStyleSheet("color: #333; font-size: 11px; font-weight: bold;")
         content_layout_1.addWidget(model_label)
-
+        
         self.model_combo = QComboBox()
         self.model_combo.addItems(["model 1", "model 2"])
         self.model_combo.setCurrentIndex(0)  # Default na model 1
@@ -521,16 +286,16 @@ class SessionScreen(QWidget):
         """)
         self.model_combo.currentTextChanged.connect(self.on_model_changed)
         content_layout_1.addWidget(self.model_combo)
-
+        
         # Spacer
         content_layout_1.addSpacing(10)
-
+        
         # Parameters box - viditelný jen pro model 2
         self.params_label = QLabel("Nastavení parametrů:")
         self.params_label.setStyleSheet("color: #333; font-size: 11px; font-weight: bold;")
         self.params_label.setVisible(False)
         content_layout_1.addWidget(self.params_label)
-
+        
         self.params_box = QFrame()
         self.params_box.setStyleSheet("border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 4px;")
         self.params_box.setMinimumHeight(80)
@@ -542,11 +307,10 @@ class SessionScreen(QWidget):
         params_box_layout.addWidget(params_placeholder)
         self.params_box.setVisible(False)
         content_layout_1.addWidget(self.params_box)
-
+        
         # Spacer
         content_layout_1.addStretch()
-
-
+        
         # Inference button - uložení jako self.inference_button pro pozdější použití
         self.inference_button = QPushButton("Spustit Inferenci")
         self.inference_button.setFixedHeight(40)
@@ -575,30 +339,22 @@ class SessionScreen(QWidget):
         """)
         # Propoj s metodou pro spuštění inference
         self.inference_button.clicked.connect(self.on_inference_clicked)
-
-
-
+        
         content_layout_1.addStretch()
         content_layout_1.addWidget(self.inference_button)
         self.stacked_widget.addWidget(content_frame_1)
 
-
+        
+        
         # Content 2: Body
         content_frame_2 = QFrame()
-        content_frame_2.setStyleSheet(
-            "border: 1px solid #ddd;" \
-            " background-color: white;"
-        )
+        content_frame_2.setStyleSheet("border: 1px solid #ddd; background-color: white;")
         content_layout_2 = QVBoxLayout(content_frame_2)
-
-        content_layout_2.setContentsMargins(0, 0, 0, 0)
-        content_layout_2.setSpacing(0)
-
-        # Použij nový VertebralPointsPanel
-        self.vertebral_panel = VertebralPointsPanel()
-        content_layout_2.addWidget(self.vertebral_panel, stretch=1)
-
-        # confirm points button
+        content_label_2 = QLabel("Bodíky")
+        content_label_2.setAlignment(Qt.AlignCenter)
+        content_label_2.setStyleSheet("color: #666; font-size: 12px;")
+        content_layout_2.addWidget(content_label_2)
+        # confirm points button - uložení jako self.confirm_points_button pro pozdější použití
         self.confirm_points_button = QPushButton("Potvrdit body")
         self.confirm_points_button.setFixedHeight(40)
         self.confirm_points_button.setCursor(Qt.PointingHandCursor)
@@ -619,18 +375,16 @@ class SessionScreen(QWidget):
                 background-color: #3d8b40;
             }
         """)
+        # Propoj s metodou pro potvrzení bodů
         self.confirm_points_button.clicked.connect(self.on_confirm_points_clicked)
-
+        
+        content_layout_2.addStretch()
         content_layout_2.addWidget(self.confirm_points_button)
-
         self.stacked_widget.addWidget(content_frame_2)
-
-
-        # Content 3: Výsledky =
+        
+        # Content 3: Výsledky
         content_frame_3 = QFrame()
-        content_frame_3.setStyleSheet(
-            "border: 1px solid #ddd; background-color: white;"
-        )
+        content_frame_3.setStyleSheet("border: 1px solid #ddd; background-color: white;")
         content_layout_3 = QVBoxLayout(content_frame_3)
         content_label_3 = QLabel("Výsledky analýzy")
         content_label_3.setAlignment(Qt.AlignCenter)
@@ -659,22 +413,19 @@ class SessionScreen(QWidget):
         """)
         # Placeholder pro budoucí funkcionalitu - lze přidat connect k metodě
         # self.export_metrics_button.clicked.connect(self.on_inference_clicked)
-
+        
         content_layout_3.addStretch()
         content_layout_3.addWidget(self.export_metrics_button)
 
         self.stacked_widget.addWidget(content_frame_3)
-
+        
         workflow_layout.addWidget(self.stacked_widget, stretch=1)
         layout.addWidget(workflow_frame)
-
-
-
-
+    
     def show_content(self, index):
         """Zobraz obsah podle vybraného menu - ale jen pokud jsou splněny podmínky"""
         menu_names = ["Nastavení", "Body", "Výsledky"]
-
+        
         # Pokud chceš jít na Body, musí být inference hotova
         if index == 1 and not self.inference_completed:
             # Odznač a zůstaň na Nastavení
@@ -683,7 +434,7 @@ class SessionScreen(QWidget):
             self.menu_buttons["Nastavení"].setChecked(True)
             self.stacked_widget.setCurrentIndex(0)
             return
-
+        
         # Pokud chceš jít na Výsledky, musí být body potvrzeny
         if index == 2 and not self.points_confirmed:
             # Odznač a zůstaň na Body
@@ -692,21 +443,21 @@ class SessionScreen(QWidget):
             self.menu_buttons["Body"].setChecked(True)
             self.stacked_widget.setCurrentIndex(1)
             return
-
+        
         # Odznač všechna tlačítka
         for btn in self.menu_buttons.values():
             btn.setChecked(False)
-
+        
         # Označ kliknuté tlačítko
         clicked_btn = list(self.menu_buttons.values())[index]
         clicked_btn.setChecked(True)
-
+        
         # Změň stránku v stacked widgetu
         self.stacked_widget.setCurrentIndex(index)
-
+        
         # Řídí viditelnost UI prvků podle tabu
         self.update_ui_visibility(index)
-
+    
     def update_ui_visibility(self, current_tab_index):
         """Aktualizuj viditelnost prvků podle aktivního tabu"""
         # Jen v Nastavení je vidět button na výběr souboru a drag-drop
@@ -714,7 +465,7 @@ class SessionScreen(QWidget):
         # Tlačítko zmizí po nahrání obrázku
         self.open_file_btn.setVisible(is_settings and not self.image_loaded)
         self.xray_frame.setAcceptDrops(is_settings)
-
+    
     def on_open_file_dialog(self):
         """Otevři file dialog pro výběr obrázku"""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -725,7 +476,7 @@ class SessionScreen(QWidget):
         )
         if file_path:
             self.load_image(file_path)
-
+    
     def load_image(self, file_path):
         """Načti snímek a zobraz ho + aktivuj potvrzovací tlačítka"""
         pixmap = QPixmap(file_path)
@@ -734,35 +485,35 @@ class SessionScreen(QWidget):
             max_size = 800  # max rozměr
             scaled_pixmap = pixmap.scaledToWidth(max_size, Qt.SmoothTransformation)
             self.image_display.setPixmap(scaled_pixmap)
-
+            
             # Markuj, že je snímek načten a aktivuj tlačítka na potvrzení
             self.image_loaded = True
             self.delete_image_btn.setEnabled(True)
             self.confirm_image_btn.setEnabled(True)
-
+            
             # Zobraz snímek namísto overlay (index 0 = scroll_area)
             self.xray_stack.setCurrentIndex(0)
-
+    
     def on_image_loaded(self, file_path):
         """Callback při drag-drop obrázku"""
         self.load_image(file_path)
-
+    
     def on_delete_image_clicked(self):
         """Smaž aktuální snímek a resetuj stav"""
         self.image_display.clear()
         self.image_loaded = False
         self.image_confirmed = False
-
+        
         # Reset tlačítek
         self.delete_image_btn.setEnabled(False)
         self.confirm_image_btn.setEnabled(False)
-
+        
         # Reset dropdown a ostatního
         self.model_combo.setCurrentIndex(0)
         self.model_combo.setEnabled(False)
         self.params_label.setVisible(False)
         self.params_box.setVisible(False)
-
+        
         # Reset workflow
         self.inference_button.setText("Spustit Inferenci")
         self.inference_button.setEnabled(False)
@@ -770,22 +521,22 @@ class SessionScreen(QWidget):
         self.menu_buttons["Body"].setEnabled(False)
         self.menu_buttons["Výsledky"].setEnabled(False)
         self.points_confirmed = False
-
+        
         # Zobraz overlay namíst obrázku
         self.xray_stack.setCurrentIndex(1)
-
+    
     def on_confirm_image_clicked(self):
         """Potvrď snímek - poté se už nepůjde měnit, ale zpřístupní se workflow"""
         self.image_confirmed = True
-
+        
         # Zakáž tlačítka na správu snímku
         self.delete_image_btn.setEnabled(False)
         self.confirm_image_btn.setEnabled(False)
-
+        
         # Zpřístupni výběr modelu
         self.model_combo.setEnabled(True)
         self.inference_button.setEnabled(True)
-
+    
     def on_inference_clicked(self):
         """Obsluha kliknutí na 'Spustit Inferenci'"""
         if self.image_loaded:
@@ -796,10 +547,7 @@ class SessionScreen(QWidget):
             self.menu_buttons["Body"].setEnabled(True)
             self.inference_button.setText("✓ Inference hotova")
             self.inference_button.setEnabled(False)
-
-            # Automaticky přepni do Body tabu
-            self.menu_buttons["Body"].click()
-
+    
     def on_confirm_points_clicked(self):
         """Obsluha kliknutí na 'Potvrdit body' - lze volat opakovaně"""
         # TODO: Sem přijde logika potvrzení bodů
@@ -807,19 +555,16 @@ class SessionScreen(QWidget):
         self.points_confirmed = True
         # Aktivuj Výsledky po potvrzení bodů
         self.menu_buttons["Výsledky"].setEnabled(True)
-
-        # Automaticky přepni do Výsledky tabu
-        self.menu_buttons["Výsledky"].click()
-
+    
     def on_model_changed(self, model_name):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
         print(f"[Session {self.session_name}] Model změněn na: {model_name}")
-
+        
         # Zobraz/skryj parametry box podle modelu
         is_model_2 = (model_name == "model 2")
         self.params_label.setVisible(is_model_2)
         self.params_box.setVisible(is_model_2)
-
+        
         # Inference button je dostupný jen pokud je snímek potvrzen
         if self.image_confirmed:
             self.inference_button.setEnabled(True)
@@ -830,17 +575,16 @@ class SessionScreen(QWidget):
             self.menu_buttons["Výsledky"].setEnabled(False)
             self.points_confirmed = False
 
-# / ===
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DigiTech-Spiner")
         self.resize(1400, 800)
         self.session_counter = 0
-
+        
         # ===== MENU BAR =====
         menubar = self.menuBar()
-
+        
         # File menu
         file_menu = menubar.addMenu("File")
         new_blank_session_action = file_menu.addAction("New Blank Session")
@@ -850,29 +594,29 @@ class MainWindow(QMainWindow):
         file_menu.addSeparator()
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
-
+        
         # Help menu
         help_menu = menubar.addMenu("Help")
         help_menu.addAction("About")
         help_menu.addAction("Documentation")
-
+        
         # ===== MAIN WIDGET =====
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-
+        
         # ===== SESSION TABS (jako v prohlížeči) =====
         self.session_tabs = QTabWidget()
         self.session_tabs.setTabsClosable(True)
         self.session_tabs.tabCloseRequested.connect(self.close_session_tab)
-
+        
         # Přidej první session
         self.add_new_session()
-
+        
         main_layout.addWidget(self.session_tabs)
-
+    
     def add_new_session(self):
         """Přidej novou session jako tab"""
         self.session_counter += 1
@@ -880,7 +624,7 @@ class MainWindow(QMainWindow):
         session_widget = SessionScreen(session_name)
         self.session_tabs.addTab(session_widget, session_name)
         self.session_tabs.setCurrentIndex(self.session_tabs.count() - 1)
-
+    
     def close_session_tab(self, index):
         """Zavři session tab"""
         if self.session_tabs.count() > 1:
