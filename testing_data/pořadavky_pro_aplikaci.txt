@@ -1,0 +1,164 @@
+Zadání aplikace: GUI pro segmentaci obratlů a
+
+validaci klíčových bodů na RTG
+
+1 Kontext a motivace
+Cílem je vytvořit aplikaci s grafickým rozhraním (GUI), která umožní:
+• nahrát RTG snímek krční páteře,
+• v pozadí spustit automatickou segmentaci / detekci obratlů a extrakci klíčových
+bodů,
+• zobrazit výsledek uživateli jako překryv bodů nad snímkem,
+• umožnit uživateli body potvrdit nebo ručně upravit (posouvat),
+• po potvrzení bodů automaticky vypočítat klinické metriky krční páteře,
+
+• zobrazit uživateli přehled vypočtených metrik a nabídnout detail/vizualizaci po roz-
+kliknutí metriky,
+
+2 Cíl aplikace
+
+Aplikace slouží jako validační a editační nástroj pro kontrolu kvality automaticky dete-
+kovaných klíčových bodů obratlů (např. C2–C7). Po potvrzení bodů aplikace vypočítá
+
+klinické metriky krční páteře a nabídne jejich přehled a interpretovatelnou vizualizaci,
+aby byl výstup použitelný pro další analýzu a reporting.
+3 Rozsah řešení
+3.1 Vstup
+• RTG snímek (např. PNG/JPG, případně DICOM dle technické volby).
+3.2 Výstup
+• JSON soubor obsahující klíčové body a metadata (rozměry snímku, název souboru
+apod.).
+• Přehled klinických metrik vypočtených z potvrzených bodů (zobrazení v aplikaci;
+export je volitelný).
+
+
+4 Uživatelské scénáře
+S1: Uživatel spustí aplikaci a nahraje RTG snímek.
+S2: Aplikace automaticky provede segmentaci a detekci klíčových bodů.
+
+S3: Aplikace zobrazí snímek s překryvem bodů (např. červené markery) a případně po-
+pisky bodů.
+
+S4: Uživatel body:
+• potvrdí, pokud jsou správně,
+• nebo vybere bod a upraví jeho polohu tažením myší (drag & drop) / posunem
+šipkami.
+S5: Po potvrzení bodů aplikace vypočítá klinické metriky krční páteře.
+S6: Aplikace zobrazí přehled metrik; po rozkliknutí metriky zobrazí detail (hodnota,
+popis) a případně vizualizaci metriky nad snímkem.
+5 Funkční požadavky
+F1: Import RTG snímku z lokálního úložiště.
+F2: Spuštění inferenční pipeline v pozadí:
+• segmentace/identifikace obratlů,
+• extrakce klíčových bodů.
+F3: Vizualizace:
+• zobrazení snímku,
+• překrytí detekovaných bodů,
+• volitelně zobrazení názvů bodů (např. C4 top left).
+F4: Interaktivní editace bodů:
+• výběr bodu kliknutím,
+• přesun bodu myší (drag & drop),
+• jemný posun pomocí klávesnice (např. šipky) s nastavitelným krokem.
+F5: Potvrzení výsledku:
+• tlačítko „Potvrdit“ (uzamkne body a spustí výpočty),
+F6: Výpočet klinických metrik krční páteře z potvrzených bodů:
+• výpočet proběhne automaticky po potvrzení bodů,
+• metriky budou prezentovány uživateli přehledně a srozumitelně.
+F7: Přehled metrik a detail metriky:
+
+• seznam/tabulka metrik s hodnotami,
+• po rozkliknutí metriky zobrazení detailu (popis, výpočetní vstupy, hodnota),
+
+• volitelně vizualizace (např. zvýraznění relevantních úseček/úhlů/oblastí v ob-
+raze).
+
+6 Návrh uživatelského rozhraní (UI)
+Minimální obrazovky:
+• Hlavní okno:
+– panel pro nahrání souboru,
+– tlačítko „Spustit detekci“,
+– pracovní plocha se snímkem a body,
+– boční seznam bodů (label + souřadnice), možnost kliknutím vybrat bod,
+– tlačítko „Potvrdit body“ pro spuštění výpočtu metrik.
+• Panel metrik (po potvrzení bodů):
+– přehled metrik (např. tabulka: název metriky, hodnota, jednotka),
+– možnost rozkliknout metriku pro detail,
+– prostor pro vizualizaci metriky (overlay do snímku / samostatný náhled).
+• Stavový panel:
+– informace o měřítku/zoomu,
+– souřadnice kurzoru,
+– aktuálně vybraný bod / aktuálně vybraná metrika.
+Doporučené nástroje:
+• zoom a posun (pan) nad snímkem,
+• přepínač „Zobrazit popisky bodů“,
+• přepínač „Zobrazit/skrýt segmentační masku“ (pokud je k dispozici),
+• přepínač „Zobrazit/skrýt vizualizaci metrik“ (overlay).
+7 Zpracovatelská pipeline (logika na pozadí)
+1. Načtení obrazu.
+2. Spuštění modelu segmentace.
+3. Extrakce klíčových bodů (např. rohy obratlů, centroid).
+4. Předání bodů do UI vrstvy.
+
+
+
+5. Potvrzení bodů uživatelem (případně korekce).
+6. Výpočet klinických metrik z potvrzených bodů.
+7. Zobrazení přehledu metrik a případné vizualizace vybrané metriky.
+8 Formát ukládání bodů (JSON)
+Klíčové body jsou ukládány jako seznam objektů, kde každý objekt reprezentuje jeden
+bod:
+• label — název bodu (např. C5 bottom left),
+• points — seznam souřadnic bodu [[x, y]],
+• shape_type — typ "point",
+• doplňková metadata (rozměry obrázku, název vstupního souboru).
+Ukázka struktury (zkráceně):
+{
+"version": "5.2.1",
+"shapes": [
+{
+"label": "C2 bottom left",
+"points": [[261.30, 344.07]],
+"shape_type": "point"
+},
+{
+"label": "C2 centroid",
+"points": [[289.39, 274.45]],
+"shape_type": "point"
+}
+],
+"imagePath": "0001035_maskhat.png",
+"imageHeight": 1014,
+"imageWidth": 802
+}
+
+8.1 Požadovaný seznam bodů
+Aplikace musí podporovat minimálně body pro obratle C2–C7 a pro každý obratel sadu
+bodů:
+• top left, top right, bottom left, bottom right,
+• volitelně centroid (např. pro C2).
+Konkrétní pojmenování labelů musí odpovídat výstupu/konvenci dat (viz přiložený JSON).
+
+
+
+9 Ukázky výstupů aplikace
+9.1 Segmentace obratlů (overlay)
+Na obrázku je ukázka výsledku segmentace obratlů překrytá přes původní RTG snímek.
+
+Obrázek 1: Segmentované obratle překryté přes RTG snímek
+
+9.2 Segmentační maska
+Samostatná segmentační maska jednotlivých obratlů.
+
+
+
+Obrázek 2: Segmentační maska obratlů
+9.3 Detekované klíčové body s popisky
+Automaticky extrahované klíčové body zobrazené s textovými popisky.
+
+
+
+Obrázek 3: Klíčové body obratlů s popisky
+9.4 Detekované klíčové body bez popisků
+Vizualizace samotných bodů bez textového překrytí.
+
+
+Obrázek 4: Klíčové body obratlů bez popisků

@@ -13,6 +13,10 @@ class DragDropFrame(QFrame):
         super().__init__()
         self.setAcceptDrops(True)
         self.image_path = None
+        # CRITICAL: Explicitně žádné margins aby se canvas zobrazil na plno
+        self.setContentsMargins(0, 0, 0, 0)
+        # CRITICAL: Žádné padding ve stylesheedu
+        self.setStyleSheet("margin: 0px; padding: 0px; border: 0px;")
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         """Když uživatel táhne soubor nad frame"""
