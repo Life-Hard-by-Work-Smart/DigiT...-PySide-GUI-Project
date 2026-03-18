@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (
+﻿from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
@@ -15,9 +15,13 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap, QDragEnterEvent, QDropEvent, QColor
 
 
-from drag_drop_frame import DragDropFrame
-from points_panel import VertebralPointsPanel
-
+from ui.panels.drag_drop_frame import DragDropFrame
+from ui.panels.points_panel import VertebralPointsPanel
+from ui.panels.image_canvas_panel import ImageCanvasPanel
+from core.models import MLInferenceSimulator
+from core.io import InferenceOutputHandler
+from config import POINT_COLORS, POINT_COLORS_MODEL_2
+from logger import logger
 
 
 class SessionScreen(QWidget):
@@ -32,28 +36,34 @@ class SessionScreen(QWidget):
         self.inference_completed = False
         self.points_confirmed = False
 
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
+        # Inference setup
+        self.current_image_path = None
+        self.ml_inference = None  # ML model simulator
+        self.io_handler = InferenceOutputHandler()  # Handler pro zpracování výstupu
 
-        # Drag-drop frame
+        # IMPORTANT: Uložiště výsledků inference per-model
+        # Format: {"model 1": vertebral_results_list, "model 2": vertebral_results_list, ...}
+        self.inference_results_by_model = {}
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)  # Žádné margins - canvas na plno!
+        layout.setSpacing(0)  # Žádná mezera
+
+        # LEFT: Drag-drop frame s canvas
         self.xray_frame = DragDropFrame()
         self.xray_frame.image_loaded.connect(self.on_image_loaded)
-        self.xray_frame.setStyleSheet("border: 2px solid #999; background-color: white;")
+        self.xray_frame.setStyleSheet("border: 2px solid #999; background-color: white; margin: 0px; padding: 0px;")
         self.xray_frame.setAcceptDrops(True)  # Drag-drop aktivní
         xray_layout = QVBoxLayout(self.xray_frame)
         xray_layout.setContentsMargins(0, 0, 0, 0)
         xray_layout.setSpacing(0)
 
-        # Scroll area pro snímek
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        self.image_display = QLabel()
-        self.image_display.setAlignment(Qt.AlignCenter)
-        self.image_display.setStyleSheet("background-color: #f5f5f5;")
-        scroll_area.setWidget(self.image_display)
+        # Canvas - bude hlavní plocha pro zobrazení obrázku a bodů
+        self.canvas_panel = ImageCanvasPanel()
+        self.canvas_panel.pointSelected.connect(self._on_canvas_point_selected)
+        self.canvas_panel.pointMoved.connect(self._on_point_moved)  # Phase 2: Reset confirmation when point moves
 
-        # Widget pro text a tlačítko (overlay)
+        # Widget pro text a tlačítko (overlay) - zobrazuje se na začátku
         overlay_widget = QWidget()
         overlay_layout = QVBoxLayout(overlay_widget)
         overlay_layout.setContentsMargins(10, 10, 10, 10)
@@ -91,21 +101,29 @@ class SessionScreen(QWidget):
         overlay_layout.addLayout(top_bar)
         overlay_layout.addStretch()
 
-        # Stacked widget - zobrazuj buď scroll_area nebo overlay
+        # Stacked widget - zobrazuj buď overlay (na začátku) nebo canvas (po inference)
         self.xray_stack = QStackedWidget()
-        self.xray_stack.addWidget(scroll_area)  # Index 0
-        self.xray_stack.addWidget(overlay_widget)  # Index 1
-        self.xray_stack.setCurrentIndex(1)  # Zobraz overlay na začátku
+        self.xray_stack.setContentsMargins(0, 0, 0, 0)  # CRITICAL: Žádné margins
+        self.xray_stack.setStyleSheet("margin: 0px; padding: 0px; border: 0px;")  # CRITICAL: Žádné padding
+        self.xray_stack.addWidget(overlay_widget)  # Index 0 - overlay
+        self.xray_stack.addWidget(self.canvas_panel)  # Index 1 - canvas
+        self.xray_stack.setCurrentIndex(0)  # Zobraz overlay na začátku
         xray_layout.addWidget(self.xray_stack, stretch=1)
-        layout.addWidget(self.xray_frame, stretch=1)
+
+        layout.addWidget(self.xray_frame, stretch=2)  # Canvas = 2/3 plochy
+
+        # Uložit pixmap pro později (po inference)
+        self.current_pixmap = None
 
         # ===== RIGHT: WORKFLOW STEP PANEL =====
-        workflow_frame = QFrame()
-        workflow_frame.setStyleSheet(
+        self.workflow_frame = QFrame()
+        self.workflow_frame.setStyleSheet(
             "border: 1px solid #ccc; background-color: #f9f9f9;"
         )
-        workflow_frame.setFixedWidth(300)
-        workflow_layout = QVBoxLayout(workflow_frame)
+        # Nastavit width - preferuj malý, ale expanduj pokud je prostor
+        self.workflow_frame.setMinimumWidth(280)
+        # NO MAXIMUM WIDTH - nechť se dá expandovat
+        workflow_layout = QVBoxLayout(self.workflow_frame)
         workflow_layout.setContentsMargins(5, 5, 5, 5)
         workflow_layout.setSpacing(5)
 
@@ -337,22 +355,28 @@ class SessionScreen(QWidget):
         self.stacked_widget.addWidget(content_frame_1)
 
 
-        # Content 2: Body
+        # Content 2: Body - pouze tabulka s body (canvas je v main xray_frame)
         content_frame_2 = QFrame()
         content_frame_2.setStyleSheet(
             "border: 1px solid #ddd;" \
             " background-color: white;"
         )
-        content_layout_2 = QVBoxLayout(content_frame_2)
+        content_layout_2_main = QVBoxLayout(content_frame_2)
+        content_layout_2_main.setContentsMargins(5, 5, 5, 5)
+        content_layout_2_main.setSpacing(5)
 
-        content_layout_2.setContentsMargins(0, 0, 0, 0)
-        content_layout_2.setSpacing(0)
+        # Nadpis
+        content_label_2 = QLabel("Vertebrální body")
+        content_label_2.setStyleSheet("color: #333; font-size: 12px; font-weight: bold;")
+        content_layout_2_main.addWidget(content_label_2)
 
-        # Použij nový VertebralPointsPanel
+        # Points table
         self.vertebral_panel = VertebralPointsPanel()
-        content_layout_2.addWidget(self.vertebral_panel, stretch=1)
+        # Phase 2: Když se klikne na bod v tabulce, zvýrazni ho v canvas
+        self.vertebral_panel.pointSelected.connect(self._on_table_point_selected)
+        content_layout_2_main.addWidget(self.vertebral_panel, stretch=1)
 
-        # confirm points button
+        # confirm points button - bottom
         self.confirm_points_button = QPushButton("Potvrdit body")
         self.confirm_points_button.setFixedHeight(40)
         self.confirm_points_button.setCursor(Qt.PointingHandCursor)
@@ -374,8 +398,7 @@ class SessionScreen(QWidget):
             }
         """)
         self.confirm_points_button.clicked.connect(self.on_confirm_points_clicked)
-
-        content_layout_2.addWidget(self.confirm_points_button)
+        content_layout_2_main.addWidget(self.confirm_points_button)
 
         self.stacked_widget.addWidget(content_frame_2)
 
@@ -420,10 +443,7 @@ class SessionScreen(QWidget):
         self.stacked_widget.addWidget(content_frame_3)
 
         workflow_layout.addWidget(self.stacked_widget, stretch=1)
-        layout.addWidget(workflow_frame)
-
-
-
+        layout.addWidget(self.workflow_frame, stretch=1)  # Menu = 1/3 plochy
 
     def show_content(self, index):
         """Zobraz obsah podle vybraného menu - ale jen pokud jsou splněny podmínky"""
@@ -461,6 +481,10 @@ class SessionScreen(QWidget):
         # Řídí viditelnost UI prvků podle tabu
         self.update_ui_visibility(index)
 
+        # Deselektuj bod když se přepínáš mezi taby
+        self.canvas_panel.deselect_point()
+        self.vertebral_panel.deselect_all()
+
     def update_ui_visibility(self, current_tab_index):
         """Aktualizuj viditelnost prvků podle aktivního tabu"""
         # Jen v Nastavení je vidět button na výběr souboru a drag-drop
@@ -484,18 +508,22 @@ class SessionScreen(QWidget):
         """Načti snímek a zobraz ho + aktivuj potvrzovací tlačítka"""
         pixmap = QPixmap(file_path)
         if not pixmap.isNull():
-            # Přizpůsobi velikost obrázku do dostupného místa
-            max_size = 800  # max rozměr
-            scaled_pixmap = pixmap.scaledToWidth(max_size, Qt.SmoothTransformation)
-            self.image_display.setPixmap(scaled_pixmap)
+            # Uložit cestu a pixmap pro pozdější použití v inference
+            self.current_image_path = file_path
+            self.current_pixmap = pixmap
+
+            # Zobraz canvas s obrázkem (bez bodů - jen obrázek)
+            self.canvas_panel.set_image(pixmap)
+            self.xray_stack.setCurrentIndex(1)  # Zobraz canvas (místo overlay)
 
             # Markuj, že je snímek načten a aktivuj tlačítka na potvrzení
             self.image_loaded = True
             self.delete_image_btn.setEnabled(True)
             self.confirm_image_btn.setEnabled(True)
 
-            # Zobraz snímek namísto overlay (index 0 = scroll_area)
-            self.xray_stack.setCurrentIndex(0)
+            logger.info(f"[Session {self.session_name}] Obrázek načten: {file_path} ({pixmap.width()}x{pixmap.height()})")
+
+            logger.info(f"[Session {self.session_name}] Obrázek načten: {file_path} ({pixmap.width()}x{pixmap.height()})")
 
     def on_image_loaded(self, file_path):
         """Callback při drag-drop obrázku"""
@@ -503,7 +531,8 @@ class SessionScreen(QWidget):
 
     def on_delete_image_clicked(self):
         """Smaž aktuální snímek a resetuj stav"""
-        self.image_display.clear()
+        self.current_pixmap = None
+        self.current_image_path = None
         self.image_loaded = False
         self.image_confirmed = False
 
@@ -525,8 +554,8 @@ class SessionScreen(QWidget):
         self.menu_buttons["Výsledky"].setEnabled(False)
         self.points_confirmed = False
 
-        # Zobraz overlay namíst obrázku
-        self.xray_stack.setCurrentIndex(1)
+        # Zobraz overlay namísto canvas
+        self.xray_stack.setCurrentIndex(0)
 
     def on_confirm_image_clicked(self):
         """Potvrď snímek - poté se už nepůjde měnit, ale zpřístupní se workflow"""
@@ -541,45 +570,157 @@ class SessionScreen(QWidget):
         self.inference_button.setEnabled(True)
 
     def on_inference_clicked(self):
-        """Obsluha kliknutí na 'Spustit Inferenci'"""
-        if self.image_loaded:
-            # TODO: Sem přijde skutečná inference logika
-            print(f"[Session {self.session_name}] Inference spuštěna")
-            self.inference_completed = True
+        """Spusť ML inference a zobraz výsledky v points panelu + canvas"""
+        if not self.image_confirmed or not self.current_image_path:
+            logger.warning(f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí")
+            return
+
+        try:
+            # Inicializuj ML model pokud neexistuje
+            if self.ml_inference is None:
+                self.ml_inference = MLInferenceSimulator()
+
+            # Spusť inference - z uživatelské perspektivy to jen pracuje s obrázkem
+            logger.info(f"[Session {self.session_name}] Inference spuštěna pro: {self.current_image_path}")
+            inference_json = self.ml_inference.predict(self.current_image_path)
+
+            if not inference_json:
+                logger.error(f"[Session {self.session_name}] Inference vrátila None")
+                return
+
+            # Zpracuj JSON výstup na VertebralPoints pro UI
+            vertebral_results = self.io_handler.parse_inference_output(inference_json)
+
+            if vertebral_results:
+                logger.info(f"[Session {self.session_name}] Inference úspěšná - {len(vertebral_results)} obratlů")
+
+                # IMPORTANT: Ulož výsledky pro aktuální model
+                current_model = self.model_combo.currentText()
+                self.inference_results_by_model[current_model] = vertebral_results
+                logger.info(f"[Session {self.session_name}] Výsledky uloženy pro model: {current_model}")
+
+                # Předej výsledky canvas panelu (vlevo)
+                if self.current_pixmap:
+                    self.canvas_panel.set_image(self.current_pixmap)
+                    self.canvas_panel.set_vertebral_points(vertebral_results)
+
+                    # IMPORTANT: Nastav barvy podle modelu
+                    if current_model == "model 2":
+                        self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
+                    else:
+                        self.canvas_panel.set_point_colors(POINT_COLORS)
+
+                    logger.info(f"[Session {self.session_name}] Canvas updated with image and {len(vertebral_results)} points")
+
+                # Předej výsledky points panelu (vpravo - tabulka)
+                self.vertebral_panel.set_vertebral_data(vertebral_results)
+
+                self.inference_completed = True
+            else:
+                logger.warning(f"[Session {self.session_name}] Parsing vrátil prázdný seznam")
+                return
+
             # Aktivuj Body po dokončení inference
             self.menu_buttons["Body"].setEnabled(True)
             self.inference_button.setText("✓ Inference hotova")
             self.inference_button.setEnabled(False)
 
+            # Přepni na canvas (z overlay) - index 1
+            self.xray_stack.setCurrentIndex(1)
+            logger.debug(f"[Session {self.session_name}] Canvas switched from overlay")
+
             # Automaticky přepni do Body tabu
             self.menu_buttons["Body"].click()
 
+        except Exception as e:
+            logger.error(f"[Session {self.session_name}] Chyba při inference: {e}")
+            import traceback
+            traceback.print_exc()
+
     def on_confirm_points_clicked(self):
         """Obsluha kliknutí na 'Potvrdit body' - lze volat opakovaně"""
-        # TODO: Sem přijde logika potvrzení bodů
-        print(f"[Session {self.session_name}] Body potvrzeny")
+        logger.info(f"[Session {self.session_name}] Body potvrzeny")
         self.points_confirmed = True
         # Aktivuj Výsledky po potvrzení bodů
         self.menu_buttons["Výsledky"].setEnabled(True)
 
+        # Deselektuj bod když se přepínáme na Výsledky tab
+        self.canvas_panel.deselect_point()
+        self.vertebral_panel.deselect_all()
+
         # Automaticky přepni do Výsledky tabu
         self.menu_buttons["Výsledky"].click()
 
+    def _on_canvas_point_selected(self, point_id: str):
+        """Canvas vybral bod - zvýrazni ho v tabulce"""
+        logger.debug(f"[Session {self.session_name}] Canvas selected point: {point_id}")
+        # Zvýrazni bod v tabulce
+        self.vertebral_panel.select_point(point_id)
+
+    def _on_table_point_selected(self, point_id: str):
+        """Tabulka vybrala bod - zvýrazni ho v canvas"""
+        logger.debug(f"[Session {self.session_name}] Table selected point: {point_id}")
+        # Zvýrazni bod v canvas
+        self.canvas_panel.select_point(point_id)
+
     def on_model_changed(self, model_name):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
-        print(f"[Session {self.session_name}] Model změněn na: {model_name}")
+        logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
 
         # Zobraz/skryj parametry box podle modelu
         is_model_2 = (model_name == "model 2")
         self.params_label.setVisible(is_model_2)
         self.params_box.setVisible(is_model_2)
 
-        # Inference button je dostupný jen pokud je snímek potvrzen
-        if self.image_confirmed:
-            self.inference_button.setEnabled(True)
-            self.inference_button.setText("Spustit Inferenci")
-            self.inference_completed = False  # Reset inference status
-            # Zákáž Body a Výsledky znovu
-            self.menu_buttons["Body"].setEnabled(False)
-            self.menu_buttons["Výsledky"].setEnabled(False)
+        # IMPORTANT: Pokud máme uložené výsledky pro tento model, zobraz je!
+        if model_name in self.inference_results_by_model:
+            logger.info(f"[Session {self.session_name}] Načítám uložené výsledky pro: {model_name}")
+            vertebral_results = self.inference_results_by_model[model_name]
+
+            # Zobraz výsledky v canvas
+            if self.current_pixmap:
+                self.canvas_panel.set_image(self.current_pixmap)
+                self.canvas_panel.set_vertebral_points(vertebral_results)
+
+                # IMPORTANT: Nastav barvy podle modelu
+                if model_name == "model 2":
+                    self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
+                else:
+                    self.canvas_panel.set_point_colors(POINT_COLORS)
+
+            # Zobraz výsledky v tabulce
+            self.vertebral_panel.set_vertebral_data(vertebral_results)
+
+            # Aktivuj Body a Výsledky protože máme data
+            self.menu_buttons["Body"].setEnabled(True)
+            self.inference_completed = True
+            self.inference_button.setText("✓ Inference hotova")
+            self.inference_button.setEnabled(False)
+            logger.info(f"[Session {self.session_name}] Výsledky načteny: {len(vertebral_results)} bodů")
+        else:
+            # Žádné uložené výsledky - resetuj UI a vymaz body z canvasu
+            logger.info(f"[Session {self.session_name}] Žádné uložené výsledky pro: {model_name}")
+
+            # VYMAZAT body z canvasu a tabulky
+            self.canvas_panel.set_vertebral_points([])  # Vyčisti body na canvasu
+            self.vertebral_panel.set_vertebral_data([])  # Vyčisti tabulku
+
+            # Inference button je dostupný jen pokud je snímek potvrzen
+            if self.image_confirmed:
+                self.inference_button.setEnabled(True)
+                self.inference_button.setText("Spustit Inferenci")
+                self.inference_completed = False  # Reset inference status
+                # Zákáž Body a Výsledky znovu
+                self.menu_buttons["Body"].setEnabled(False)
+                self.menu_buttons["Výsledky"].setEnabled(False)
+                self.points_confirmed = False
+
+    def _on_point_moved(self, point_id: str, x: float, y: float):
+        """Bod se pohybuje - resetuj potvrzení bodů"""
+        if self.points_confirmed:
+            logger.info(f"[Session {self.session_name}] Bod {point_id} se pohybuje - resetuji potvrzení")
             self.points_confirmed = False
+            # Zákáž Výsledky tab dokud se body znovu nepotvrdí
+            self.menu_buttons["Výsledky"].setEnabled(False)
+            # Vrať se na Body tab
+            self.menu_buttons["Body"].click()
