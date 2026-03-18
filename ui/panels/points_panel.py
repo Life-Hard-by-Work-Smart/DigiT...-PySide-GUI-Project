@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QPushButton
 
 from core.models import Point, VertebralPoints
 from logger import logger
@@ -19,12 +20,19 @@ from logger import logger
 class VertebralPointItem(QFrame):
     """Widget pro zobrazení jednoho obratle s jeho body"""
 
+    # Signal emitovaný když se klikne na bod
+    pointSelected = Signal(str)  # point_id
+
     def __init__(self, vertebral: VertebralPoints):
         super().__init__()
         self.vertebral = vertebral
-        self.setStyleSheet(
-            "background-color: #e8e8e8; border-radius: 10px; padding: 5px;"
-        )
+        self.selected_point_id = None  # Aktuálně vybraný bod
+        self.point_buttons = {}  # point_id -> button widget
+
+        # Výchozí styl
+        self.default_style = "background-color: #e8e8e8; border-radius: 10px; padding: 5px;"
+        self.selected_style = "background-color: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 5px;"
+        self.setStyleSheet(self.default_style)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(8, 6, 8, 6)
@@ -68,11 +76,34 @@ class VertebralPointItem(QFrame):
             )
             row_layout.addWidget(indicator)
 
-            # Text s souřadnicemi
+            # Text s souřadnicemi - KLIKATELNÉ TLAČÍTKO
             text = f"{point_abbr}: X: {point.x:.2f} Y: {point.y:.2f}"
-            label = QLabel(text)
-            label.setStyleSheet("color: #666; font-size: 12px;")
-            row_layout.addWidget(label)
+            point_button = QPushButton(text)
+            point_button.setFlat(True)
+            point_button.setStyleSheet("""
+                QPushButton {
+                    color: #666;
+                    font-size: 12px;
+                    text-align: left;
+                    padding: 2px 4px;
+                    border: 1px solid transparent;
+                    border-radius: 3px;
+                }
+                QPushButton:hover {
+                    background-color: #f0f0f0;
+                    border: 1px solid #ccc;
+                }
+            """)
+            point_button.setCursor(Qt.PointingHandCursor)
+
+            # Store button for later reference
+            point_id = point.label  # Use point.label as the identifier
+            self.point_buttons[point_id] = point_button
+
+            # Connect signal
+            point_button.clicked.connect(lambda checked=False, pid=point_id: self._on_point_clicked(pid))
+
+            row_layout.addWidget(point_button)
             row_layout.addStretch()
 
             left_layout.addLayout(row_layout)
@@ -109,13 +140,73 @@ class VertebralPointItem(QFrame):
         self.vertebral = vertebral
         self.update()
 
+    def _on_point_clicked(self, point_id: str):
+        """Bod byl vybrán"""
+        self.selected_point_id = point_id
+        self.pointSelected.emit(point_id)
+        # Vizuálně zvýrazni bod
+        self._update_point_highlight()
+        logger.debug(f"VertebralPointItem: point {point_id} selected")
+
+    def select_point(self, point_id: str):
+        """Zvýrazni bod (voláno z canvas nebo programově)"""
+        self.selected_point_id = point_id
+        self._update_point_highlight()
+
+    def deselect_point(self):
+        """Zrušit zvýraznění"""
+        self.selected_point_id = None
+        self._update_point_highlight()
+
+    def _update_point_highlight(self):
+        """Aktualizuj vizuální styl dle vybraného bodu"""
+        for point_id, button in self.point_buttons.items():
+            if point_id == self.selected_point_id:
+                # Vybraný bod - tmavší barva + border
+                button.setStyleSheet("""
+                    QPushButton {
+                        color: #333;
+                        font-size: 12px;
+                        font-weight: bold;
+                        text-align: left;
+                        padding: 2px 4px;
+                        background-color: #fff3cd;
+                        border: 2px solid #ffc107;
+                        border-radius: 3px;
+                    }
+                    QPushButton:hover {
+                        background-color: #ffe69c;
+                        border: 2px solid #ff9800;
+                    }
+                """)
+            else:
+                # Normální bod
+                button.setStyleSheet("""
+                    QPushButton {
+                        color: #666;
+                        font-size: 12px;
+                        text-align: left;
+                        padding: 2px 4px;
+                        border: 1px solid transparent;
+                        border-radius: 3px;
+                    }
+                    QPushButton:hover {
+                        background-color: #f0f0f0;
+                        border: 1px solid #ccc;
+                    }
+                """)
+
 
 class VertebralPointsPanel(QFrame):
     """Panel pro zobrazení všech bodů obratlů"""
 
+    # Signal emitovaný když uživatel vybere bod v tabulce
+    pointSelected = Signal(str)  # point_id
+
     def __init__(self):
         super().__init__()
         self.vertebrals: list[VertebralPoints] = []
+        self.vertebral_items = []  # Pro přístup k jednotlivým položkám
         self.init_ui()
         # Bez sample dat - čeka na set_vertebral_data()
 
@@ -179,6 +270,7 @@ class VertebralPointsPanel(QFrame):
     def refresh_display(self):
         """Obnovit zobrazení všech obratlů"""
         # Vyčistit starý obsah
+        self.vertebral_items = []
         while self.container_layout.count():
             item = self.container_layout.takeAt(0)
             if item.widget():
@@ -187,6 +279,28 @@ class VertebralPointsPanel(QFrame):
         # Přidat nové položky
         for vertebral in self.vertebrals:
             item = VertebralPointItem(vertebral)
+            # Propoj signal - když se klikne na bod v tabulce, vylej signal nahoru
+            item.pointSelected.connect(self._on_point_selected)
+            self.vertebral_items.append(item)
             self.container_layout.addWidget(item)
 
         self.container_layout.addStretch()
+
+    def _on_point_selected(self, point_id: str):
+        """Bod byl vybrán v tabulce"""
+        self.pointSelected.emit(point_id)
+        logger.debug(f"VertebralPointsPanel: point {point_id} selected")
+
+    def select_point(self, point_id: str):
+        """Zvýrazni bod programově (voleno z canvas)"""
+        # Najdi bod v items a zvýrazni ho
+        for item in self.vertebral_items:
+            if point_id in item.point_buttons:
+                item.select_point(point_id)
+            else:
+                item.deselect_point()
+
+    def deselect_all(self):
+        """Zrušit zvýraznění všech bodů"""
+        for item in self.vertebral_items:
+            item.deselect_point()

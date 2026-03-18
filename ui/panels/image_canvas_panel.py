@@ -154,6 +154,15 @@ class PointsOverlay(QWidget):
         canvas_y = int(image_y * self.zoom_level + self.pan_offset.y())
         return canvas_x, canvas_y
 
+    def _lighten_color(self, color: QColor) -> QColor:
+        """Zjasnit barvu pro vybraný bod"""
+        # Sní hodnoty na 0-1 rozsah
+        h, s, v, a = color.getHsv()
+        # Zvětšit brightness
+        v = min(255, int(v * 1.3))
+        s = max(0, int(s * 0.8))  # Snížit saturaci pro měkčí vzhled
+        return QColor.fromHsv(h, s, v, a)
+
     def _get_point_at_coords(self, x: int, y: int, radius: int = POINT_CLICK_RADIUS) -> str:
         """Vrátí point_id na dané souřadnici (s hitboxem), nebo None"""
         for point_id, point in self.vertebral_points.items():
@@ -213,6 +222,11 @@ class PointsOverlay(QWidget):
             is_selected = point_id == self.selected_point_id
             point_abbr = self._get_point_abbreviation(point_id)
             color = self.point_colors.get(point_abbr, QColor(200, 200, 200))
+
+            # Pokud je vybraný, nastav jasnější barvu
+            if is_selected:
+                color = self._lighten_color(color)
+
             radius = POINT_SELECTED_RADIUS if is_selected else POINT_RADIUS
 
             # Nakresli bod
@@ -220,12 +234,19 @@ class PointsOverlay(QWidget):
             painter.setPen(Qt.NoPen)
             painter.drawEllipse(canvas_x - radius, canvas_y - radius, radius * 2, radius * 2)
 
-            # Pokud je vybraný, nakresli obrys
+            # Pokud je vybraný, nakresli obrys (silnější)
             if is_selected:
-                painter.setPen(QPen(QColor(0, 0, 0), 2))
+                painter.setPen(QPen(QColor(255, 165, 0), 3))  # Oranžový border
                 painter.setBrush(Qt.NoBrush)
                 painter.drawEllipse(
-                    canvas_x - radius - 2, canvas_y - radius - 2, (radius + 2) * 2, (radius + 2) * 2
+                    canvas_x - radius - 3, canvas_y - radius - 3, (radius + 3) * 2, (radius + 3) * 2
+                )
+            else:
+                # Normální bod - jemný border
+                painter.setPen(QPen(QColor(100, 100, 100), 1))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawEllipse(
+                    canvas_x - radius - 1, canvas_y - radius - 1, (radius + 1) * 2, (radius + 1) * 2
                 )
 
             # Nakresli label (pokud je zapnuté)

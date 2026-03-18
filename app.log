@@ -28339,3 +28339,463 @@
 [2026-03-19 00:28:42] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom left (320.51055908203125, 794.7393798828125)
 [2026-03-19 00:28:42] [DigiTech] [DEBUG] Canvas: barvy bodů změněny
 [2026-03-19 00:28:42] [DigiTech] [INFO] [Session Session 1] Výsledky načteny: 6 bodů
+[2026-03-19 00:34:24] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-19 00:34:24] [DigiTech] [INFO] ImageCanvasPanel: initializing
+[2026-03-19 00:34:24] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-19 00:34:24] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-19 00:34:56] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:34:56] [DigiTech] [DEBUG] Auto-fit: zoom=0.47, offset=(130, 0), min_zoom=0.47
+[2026-03-19 00:34:56] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:34:56] [DigiTech] [DEBUG] Canvas resized to 925x734
+[2026-03-19 00:34:56] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:34:56] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:34:56] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, 0)
+[2026-03-19 00:34:56] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:34:56] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:34:59] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-19 00:34:59] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-19 00:34:59] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-19 00:34:59] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-19 00:34:59] [DigiTech] [INFO] [Session Session 1] Výsledky uloženy pro model: model 1
+[2026-03-19 00:34:59] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom left (261.3045959472656, 344.06622314453125)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom right (325.4737243652344, 318.0546569824219)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C2 centroid (289.3890075683594, 274.4461364746094)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C3 top left (266.670166015625, 361.5896301269531)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C3 top right (329.0916442871094, 342.2759094238281)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom right (343.37774658203125, 419.34710693359375)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom left (260.618896484375, 442.213623046875)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C4 top left (264.8780517578125, 465.7331237792969)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C4 top right (343.79241943359375, 439.329833984375)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom right (346.83612060546875, 508.75482177734375)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom left (266.12042236328125, 530.4320678710938)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C5 top left (271.76190185546875, 548.982421875)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C5 top right (343.93060302734375, 527.5237426757812)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom right (348.329833984375, 589.4103393554688)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom left (273.2533874511719, 611.5399169921875)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C6 top left (278.3343505859375, 632.7590942382812)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C6 top right (348.98797607421875, 608.7056884765625)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom right (361.41278076171875, 674.2086791992188)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom left (291.0192565917969, 696.8673095703125)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C7 top left (299.07940673828125, 720.8668823242188)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C7 top right (364.0037841796875, 692.0911254882812)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom right (392.528564453125, 769.2736206054688)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom left (320.51055908203125, 794.7393798828125)
+[2026-03-19 00:34:59] [DigiTech] [DEBUG] Canvas: barvy bodů změněny
+[2026-03-19 00:34:59] [DigiTech] [INFO] [Session Session 1] Canvas updated with image and 6 points
+[2026-03-19 00:34:59] [DigiTech] [ERROR] [Session Session 1] Chyba při inference: 'Point' object has no attribute 'id'
+[2026-03-19 00:35:02] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-19 00:35:02] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-19 00:35:02] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-19 00:35:02] [DigiTech] [INFO] [Session Session 1] Výsledky uloženy pro model: model 1
+[2026-03-19 00:35:02] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom left (261.3045959472656, 344.06622314453125)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom right (325.4737243652344, 318.0546569824219)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C2 centroid (289.3890075683594, 274.4461364746094)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C3 top left (266.670166015625, 361.5896301269531)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C3 top right (329.0916442871094, 342.2759094238281)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom right (343.37774658203125, 419.34710693359375)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom left (260.618896484375, 442.213623046875)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C4 top left (264.8780517578125, 465.7331237792969)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C4 top right (343.79241943359375, 439.329833984375)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom right (346.83612060546875, 508.75482177734375)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom left (266.12042236328125, 530.4320678710938)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C5 top left (271.76190185546875, 548.982421875)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C5 top right (343.93060302734375, 527.5237426757812)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom right (348.329833984375, 589.4103393554688)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom left (273.2533874511719, 611.5399169921875)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C6 top left (278.3343505859375, 632.7590942382812)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C6 top right (348.98797607421875, 608.7056884765625)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom right (361.41278076171875, 674.2086791992188)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom left (291.0192565917969, 696.8673095703125)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C7 top left (299.07940673828125, 720.8668823242188)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C7 top right (364.0037841796875, 692.0911254882812)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom right (392.528564453125, 769.2736206054688)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom left (320.51055908203125, 794.7393798828125)
+[2026-03-19 00:35:02] [DigiTech] [DEBUG] Canvas: barvy bodů změněny
+[2026-03-19 00:35:02] [DigiTech] [INFO] [Session Session 1] Canvas updated with image and 6 points
+[2026-03-19 00:35:02] [DigiTech] [ERROR] [Session Session 1] Chyba při inference: 'Point' object has no attribute 'id'
+[2026-03-19 00:36:03] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-19 00:36:03] [DigiTech] [INFO] ImageCanvasPanel: initializing
+[2026-03-19 00:36:03] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-19 00:36:03] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-19 00:36:13] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:36:13] [DigiTech] [DEBUG] Auto-fit: zoom=0.47, offset=(130, 0), min_zoom=0.47
+[2026-03-19 00:36:13] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:36:13] [DigiTech] [DEBUG] Canvas resized to 925x734
+[2026-03-19 00:36:13] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:13] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:13] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, 0)
+[2026-03-19 00:36:13] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:36:13] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:36:16] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-19 00:36:16] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-19 00:36:16] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-19 00:36:16] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-19 00:36:16] [DigiTech] [INFO] [Session Session 1] Výsledky uloženy pro model: model 1
+[2026-03-19 00:36:16] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom left (261.3045959472656, 344.06622314453125)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom right (325.4737243652344, 318.0546569824219)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C2 centroid (289.3890075683594, 274.4461364746094)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C3 top left (266.670166015625, 361.5896301269531)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C3 top right (329.0916442871094, 342.2759094238281)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom right (343.37774658203125, 419.34710693359375)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom left (260.618896484375, 442.213623046875)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C4 top left (264.8780517578125, 465.7331237792969)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C4 top right (343.79241943359375, 439.329833984375)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom right (346.83612060546875, 508.75482177734375)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom left (266.12042236328125, 530.4320678710938)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C5 top left (271.76190185546875, 548.982421875)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C5 top right (343.93060302734375, 527.5237426757812)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom right (348.329833984375, 589.4103393554688)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom left (273.2533874511719, 611.5399169921875)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C6 top left (278.3343505859375, 632.7590942382812)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C6 top right (348.98797607421875, 608.7056884765625)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom right (361.41278076171875, 674.2086791992188)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom left (291.0192565917969, 696.8673095703125)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C7 top left (299.07940673828125, 720.8668823242188)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C7 top right (364.0037841796875, 692.0911254882812)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom right (392.528564453125, 769.2736206054688)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom left (320.51055908203125, 794.7393798828125)
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] Canvas: barvy bodů změněny
+[2026-03-19 00:36:16] [DigiTech] [INFO] [Session Session 1] Canvas updated with image and 6 points
+[2026-03-19 00:36:16] [DigiTech] [DEBUG] [Session Session 1] Canvas switched from overlay
+[2026-03-19 00:36:18] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C3 top left
+[2026-03-19 00:36:18] [DigiTech] [DEBUG] VertebralPointsPanel: point C3 top left selected
+[2026-03-19 00:36:18] [DigiTech] [DEBUG] VertebralPointItem: point C3 top left selected
+[2026-03-19 00:36:20] [DigiTech] [DEBUG] [Session Session 1] Canvas selected point: C3 top left
+[2026-03-19 00:36:20] [DigiTech] [DEBUG] Canvas: point selected C3 top left
+[2026-03-19 00:36:23] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C3 top right
+[2026-03-19 00:36:23] [DigiTech] [DEBUG] VertebralPointsPanel: point C3 top right selected
+[2026-03-19 00:36:23] [DigiTech] [DEBUG] VertebralPointItem: point C3 top right selected
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=638x807
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: centering X: center_x=143
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(143, -34)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=0.80, pan_offset=PySide6.QtCore.QPoint(143, -34)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=702x888
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: centering X: center_x=111
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(111, -71)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=0.88, pan_offset=PySide6.QtCore.QPoint(111, -71)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=772x976
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: centering X: center_x=76
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(76, -112)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=0.96, pan_offset=PySide6.QtCore.QPoint(76, -112)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=849x1074
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: centering X: center_x=38
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(38, -157)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=1.06, pan_offset=PySide6.QtCore.QPoint(38, -157)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=934x1182
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-13, -207)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=1.17, pan_offset=PySide6.QtCore.QPoint(-13, -207)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1028x1300
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-51, -262)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=1.28, pan_offset=PySide6.QtCore.QPoint(-51, -262)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1131x1430
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-93, -322)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=1.41, pan_offset=PySide6.QtCore.QPoint(-93, -322)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1244x1573
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-139, -388)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=1.55, pan_offset=PySide6.QtCore.QPoint(-139, -388)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1368x1730
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-190, -461)
+[2026-03-19 00:36:25] [DigiTech] [DEBUG] Canvas: zoom=1.71, pan_offset=PySide6.QtCore.QPoint(-190, -461)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1505x1903
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-244, -532)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: zoom=1.88, pan_offset=PySide6.QtCore.QPoint(-244, -532)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1656x2094
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-303, -610)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: zoom=2.07, pan_offset=PySide6.QtCore.QPoint(-303, -610)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1821x2303
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-368, -696)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: zoom=2.27, pan_offset=PySide6.QtCore.QPoint(-368, -696)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2004x2533
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-440, -790)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: zoom=2.50, pan_offset=PySide6.QtCore.QPoint(-440, -790)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2204x2787
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-522, -887)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: zoom=2.75, pan_offset=PySide6.QtCore.QPoint(-522, -887)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2425x3066
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-612, -993)
+[2026-03-19 00:36:26] [DigiTech] [DEBUG] Canvas: zoom=3.02, pan_offset=PySide6.QtCore.QPoint(-612, -993)
+[2026-03-19 00:36:27] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2667x3372
+[2026-03-19 00:36:27] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-709, -1103)
+[2026-03-19 00:36:27] [DigiTech] [DEBUG] Canvas: zoom=3.33, pan_offset=PySide6.QtCore.QPoint(-709, -1103)
+[2026-03-19 00:36:27] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2425x3066
+[2026-03-19 00:36:27] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-610, -993)
+[2026-03-19 00:36:27] [DigiTech] [DEBUG] Canvas: zoom=3.02, pan_offset=PySide6.QtCore.QPoint(-610, -993)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2204x2787
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-517, -884)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=2.75, pan_offset=PySide6.QtCore.QPoint(-517, -884)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2004x2533
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-433, -784)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=2.50, pan_offset=PySide6.QtCore.QPoint(-433, -784)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1821x2303
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-357, -693)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=2.27, pan_offset=PySide6.QtCore.QPoint(-357, -693)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1656x2094
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-288, -610)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=2.07, pan_offset=PySide6.QtCore.QPoint(-288, -610)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1505x1903
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-231, -533)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=1.88, pan_offset=PySide6.QtCore.QPoint(-231, -533)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1368x1730
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-179, -463)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=1.71, pan_offset=PySide6.QtCore.QPoint(-179, -463)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1244x1573
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-132, -399)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=1.55, pan_offset=PySide6.QtCore.QPoint(-132, -399)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1131x1430
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-90, -341)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=1.41, pan_offset=PySide6.QtCore.QPoint(-90, -341)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1028x1300
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-52, -288)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=1.28, pan_offset=PySide6.QtCore.QPoint(-52, -288)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=934x1182
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-17, -240)
+[2026-03-19 00:36:29] [DigiTech] [DEBUG] Canvas: zoom=1.17, pan_offset=PySide6.QtCore.QPoint(-17, -240)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=849x1074
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=38
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(38, -195)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=1.06, pan_offset=PySide6.QtCore.QPoint(38, -195)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=772x976
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=76
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(76, -154)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.96, pan_offset=PySide6.QtCore.QPoint(76, -154)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=702x888
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=111
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(111, -117)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.88, pan_offset=PySide6.QtCore.QPoint(111, -117)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=638x807
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=143
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(143, -83)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.80, pan_offset=PySide6.QtCore.QPoint(143, -83)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.72, pan_offset=PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.72, pan_offset=PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.72, pan_offset=PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.72, pan_offset=PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.72, pan_offset=PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.72, pan_offset=PySide6.QtCore.QPoint(172, -52)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=638x807
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=143
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(143, -73)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.80, pan_offset=PySide6.QtCore.QPoint(143, -73)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=702x888
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=111
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(111, -96)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.88, pan_offset=PySide6.QtCore.QPoint(111, -96)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=772x976
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=76
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(76, -122)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=0.96, pan_offset=PySide6.QtCore.QPoint(76, -122)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=849x1074
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: centering X: center_x=38
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(38, -148)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=1.06, pan_offset=PySide6.QtCore.QPoint(38, -148)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=934x1182
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(11, -167)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=1.17, pan_offset=PySide6.QtCore.QPoint(11, -167)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1028x1300
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-18, -188)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=1.28, pan_offset=PySide6.QtCore.QPoint(-18, -188)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1131x1430
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-49, -211)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=1.41, pan_offset=PySide6.QtCore.QPoint(-49, -211)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1244x1573
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-83, -237)
+[2026-03-19 00:36:30] [DigiTech] [DEBUG] Canvas: zoom=1.55, pan_offset=PySide6.QtCore.QPoint(-83, -237)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1368x1730
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-119, -265)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: zoom=1.71, pan_offset=PySide6.QtCore.QPoint(-119, -265)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1505x1903
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-152, -298)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: zoom=1.88, pan_offset=PySide6.QtCore.QPoint(-152, -298)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1656x2094
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-188, -334)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: zoom=2.07, pan_offset=PySide6.QtCore.QPoint(-188, -334)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1821x2303
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-227, -374)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: zoom=2.27, pan_offset=PySide6.QtCore.QPoint(-227, -374)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2004x2533
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-270, -418)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: zoom=2.50, pan_offset=PySide6.QtCore.QPoint(-270, -418)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2204x2787
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-318, -467)
+[2026-03-19 00:36:31] [DigiTech] [DEBUG] Canvas: zoom=2.75, pan_offset=PySide6.QtCore.QPoint(-318, -467)
+[2026-03-19 00:36:35] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 centroid
+[2026-03-19 00:36:35] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 centroid selected
+[2026-03-19 00:36:35] [DigiTech] [DEBUG] VertebralPointItem: point C2 centroid selected
+[2026-03-19 00:36:41] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=2004x2533
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-238, -393)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=2.50, pan_offset=PySide6.QtCore.QPoint(-238, -393)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1821x2303
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-166, -326)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=2.27, pan_offset=PySide6.QtCore.QPoint(-166, -326)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1656x2094
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-100, -265)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=2.07, pan_offset=PySide6.QtCore.QPoint(-100, -265)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1505x1903
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(-40, -209)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=1.88, pan_offset=PySide6.QtCore.QPoint(-40, -209)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1368x1730
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(14, -158)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=1.71, pan_offset=PySide6.QtCore.QPoint(14, -158)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1244x1573
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(64, -112)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=1.55, pan_offset=PySide6.QtCore.QPoint(64, -112)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=1131x1430
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(109, -70)
+[2026-03-19 00:36:42] [DigiTech] [DEBUG] Canvas: zoom=1.41, pan_offset=PySide6.QtCore.QPoint(109, -70)
+[2026-03-19 00:36:43] [DigiTech] [DEBUG] [Session Session 1] Canvas selected point: C2 bottom right
+[2026-03-19 00:36:43] [DigiTech] [DEBUG] Canvas: point selected C2 bottom right
+[2026-03-19 00:36:45] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 centroid
+[2026-03-19 00:36:45] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 centroid selected
+[2026-03-19 00:36:45] [DigiTech] [DEBUG] VertebralPointItem: point C2 centroid selected
+[2026-03-19 00:40:38] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-19 00:40:38] [DigiTech] [INFO] ImageCanvasPanel: initializing
+[2026-03-19 00:40:38] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-19 00:40:38] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-19 00:40:42] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:40:42] [DigiTech] [DEBUG] Auto-fit: zoom=0.47, offset=(130, 0), min_zoom=0.47
+[2026-03-19 00:40:42] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:40:42] [DigiTech] [DEBUG] Canvas resized to 925x734
+[2026-03-19 00:40:42] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:40:42] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:40:43] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, 0)
+[2026-03-19 00:40:43] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:40:43] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:40:44] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-19 00:40:44] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-19 00:40:44] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-19 00:40:44] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-19 00:40:44] [DigiTech] [INFO] [Session Session 1] Výsledky uloženy pro model: model 1
+[2026-03-19 00:40:44] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom left (261.3045959472656, 344.06622314453125)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom right (325.4737243652344, 318.0546569824219)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C2 centroid (289.3890075683594, 274.4461364746094)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C3 top left (266.670166015625, 361.5896301269531)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C3 top right (329.0916442871094, 342.2759094238281)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom right (343.37774658203125, 419.34710693359375)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom left (260.618896484375, 442.213623046875)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C4 top left (264.8780517578125, 465.7331237792969)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C4 top right (343.79241943359375, 439.329833984375)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom right (346.83612060546875, 508.75482177734375)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom left (266.12042236328125, 530.4320678710938)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C5 top left (271.76190185546875, 548.982421875)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C5 top right (343.93060302734375, 527.5237426757812)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom right (348.329833984375, 589.4103393554688)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom left (273.2533874511719, 611.5399169921875)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C6 top left (278.3343505859375, 632.7590942382812)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C6 top right (348.98797607421875, 608.7056884765625)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom right (361.41278076171875, 674.2086791992188)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom left (291.0192565917969, 696.8673095703125)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C7 top left (299.07940673828125, 720.8668823242188)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C7 top right (364.0037841796875, 692.0911254882812)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom right (392.528564453125, 769.2736206054688)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom left (320.51055908203125, 794.7393798828125)
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] Canvas: barvy bodů změněny
+[2026-03-19 00:40:44] [DigiTech] [INFO] [Session Session 1] Canvas updated with image and 6 points
+[2026-03-19 00:40:44] [DigiTech] [DEBUG] [Session Session 1] Canvas switched from overlay
+[2026-03-19 00:40:45] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-19 00:40:50] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 centroid
+[2026-03-19 00:40:50] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 centroid selected
+[2026-03-19 00:40:50] [DigiTech] [DEBUG] VertebralPointItem: point C2 centroid selected
+[2026-03-19 00:40:53] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-19 00:40:56] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 centroid
+[2026-03-19 00:40:56] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 centroid selected
+[2026-03-19 00:40:56] [DigiTech] [DEBUG] VertebralPointItem: point C2 centroid selected
+[2026-03-19 00:40:59] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 bottom left
+[2026-03-19 00:40:59] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 bottom left selected
+[2026-03-19 00:40:59] [DigiTech] [DEBUG] VertebralPointItem: point C2 bottom left selected
+[2026-03-19 00:41:00] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 bottom right
+[2026-03-19 00:41:00] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 bottom right selected
+[2026-03-19 00:41:00] [DigiTech] [DEBUG] VertebralPointItem: point C2 bottom right selected
+[2026-03-19 00:41:00] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 bottom left
+[2026-03-19 00:41:00] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 bottom left selected
+[2026-03-19 00:41:00] [DigiTech] [DEBUG] VertebralPointItem: point C2 bottom left selected
+[2026-03-19 00:41:01] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 bottom right
+[2026-03-19 00:41:01] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 bottom right selected
+[2026-03-19 00:41:01] [DigiTech] [DEBUG] VertebralPointItem: point C2 bottom right selected
+[2026-03-19 00:41:02] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 centroid
+[2026-03-19 00:41:02] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 centroid selected
+[2026-03-19 00:41:02] [DigiTech] [DEBUG] VertebralPointItem: point C2 centroid selected
+[2026-03-19 00:41:03] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 bottom left
+[2026-03-19 00:41:03] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 bottom left selected
+[2026-03-19 00:41:03] [DigiTech] [DEBUG] VertebralPointItem: point C2 bottom left selected
+[2026-03-19 00:41:07] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-19 00:41:17] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-19 00:41:17] [DigiTech] [INFO] ImageCanvasPanel: initializing
+[2026-03-19 00:41:17] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-19 00:41:17] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-19 00:41:21] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:41:21] [DigiTech] [DEBUG] Auto-fit: zoom=0.47, offset=(130, 0), min_zoom=0.47
+[2026-03-19 00:41:21] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:41:21] [DigiTech] [DEBUG] Canvas resized to 925x734
+[2026-03-19 00:41:21] [DigiTech] [DEBUG] Canvas: _clamp_pan_offset called: canvas=925x734, scaled=580x734
+[2026-03-19 00:41:21] [DigiTech] [DEBUG] Canvas: centering X: center_x=172
+[2026-03-19 00:41:21] [DigiTech] [DEBUG] Canvas: pan_offset after clamp = PySide6.QtCore.QPoint(172, 0)
+[2026-03-19 00:41:21] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:41:21] [DigiTech] [INFO] [Session Session 1] Obrázek načten: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png (802x1014)
+[2026-03-19 00:41:23] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-19 00:41:23] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-19 00:41:23] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-19 00:41:23] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-19 00:41:23] [DigiTech] [INFO] [Session Session 1] Výsledky uloženy pro model: model 1
+[2026-03-19 00:41:23] [DigiTech] [INFO] ImageCanvasPanel: loaded image 802x1014
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Auto-fit: zoom=0.72, offset=(172, 0), min_zoom=0.72
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom left (261.3045959472656, 344.06622314453125)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C2 bottom right (325.4737243652344, 318.0546569824219)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C2 centroid (289.3890075683594, 274.4461364746094)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C3 top left (266.670166015625, 361.5896301269531)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C3 top right (329.0916442871094, 342.2759094238281)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom right (343.37774658203125, 419.34710693359375)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C3 bottom left (260.618896484375, 442.213623046875)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C4 top left (264.8780517578125, 465.7331237792969)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C4 top right (343.79241943359375, 439.329833984375)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom right (346.83612060546875, 508.75482177734375)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C4 bottom left (266.12042236328125, 530.4320678710938)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C5 top left (271.76190185546875, 548.982421875)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C5 top right (343.93060302734375, 527.5237426757812)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom right (348.329833984375, 589.4103393554688)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C5 bottom left (273.2533874511719, 611.5399169921875)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C6 top left (278.3343505859375, 632.7590942382812)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C6 top right (348.98797607421875, 608.7056884765625)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom right (361.41278076171875, 674.2086791992188)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C6 bottom left (291.0192565917969, 696.8673095703125)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C7 top left (299.07940673828125, 720.8668823242188)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C7 top right (364.0037841796875, 692.0911254882812)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom right (392.528564453125, 769.2736206054688)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: loaded point C7 bottom left (320.51055908203125, 794.7393798828125)
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] Canvas: barvy bodů změněny
+[2026-03-19 00:41:23] [DigiTech] [INFO] [Session Session 1] Canvas updated with image and 6 points
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] [Session Session 1] Canvas switched from overlay
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C2 bottom left
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] VertebralPointsPanel: point C2 bottom left selected
+[2026-03-19 00:41:23] [DigiTech] [DEBUG] VertebralPointItem: point C2 bottom left selected
+[2026-03-19 00:41:25] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-19 00:41:27] [DigiTech] [DEBUG] [Session Session 1] Table selected point: C3 bottom right
+[2026-03-19 00:41:27] [DigiTech] [DEBUG] VertebralPointsPanel: point C3 bottom right selected
+[2026-03-19 00:41:27] [DigiTech] [DEBUG] VertebralPointItem: point C3 bottom right selected
+[2026-03-19 00:41:28] [DigiTech] [INFO] [Session Session 1] Body potvrzeny

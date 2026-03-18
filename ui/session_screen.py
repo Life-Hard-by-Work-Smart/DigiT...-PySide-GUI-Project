@@ -61,6 +61,7 @@ class SessionScreen(QWidget):
         # Canvas - bude hlavní plocha pro zobrazení obrázku a bodů
         self.canvas_panel = ImageCanvasPanel()
         self.canvas_panel.pointSelected.connect(self._on_canvas_point_selected)
+        self.canvas_panel.pointMoved.connect(self._on_point_moved)  # Phase 2: Reset confirmation when point moves
 
         # Widget pro text a tlačítko (overlay) - zobrazuje se na začátku
         overlay_widget = QWidget()
@@ -371,6 +372,8 @@ class SessionScreen(QWidget):
 
         # Points table
         self.vertebral_panel = VertebralPointsPanel()
+        # Phase 2: Když se klikne na bod v tabulce, zvýrazni ho v canvas
+        self.vertebral_panel.pointSelected.connect(self._on_table_point_selected)
         content_layout_2_main.addWidget(self.vertebral_panel, stretch=1)
 
         # confirm points button - bottom
@@ -477,6 +480,10 @@ class SessionScreen(QWidget):
 
         # Řídí viditelnost UI prvků podle tabu
         self.update_ui_visibility(index)
+
+        # Deselektuj bod když se přepínáš mezi taby
+        self.canvas_panel.deselect_point()
+        self.vertebral_panel.deselect_all()
 
     def update_ui_visibility(self, current_tab_index):
         """Aktualizuj viditelnost prvků podle aktivního tabu"""
@@ -637,13 +644,24 @@ class SessionScreen(QWidget):
         # Aktivuj Výsledky po potvrzení bodů
         self.menu_buttons["Výsledky"].setEnabled(True)
 
+        # Deselektuj bod když se přepínáme na Výsledky tab
+        self.canvas_panel.deselect_point()
+        self.vertebral_panel.deselect_all()
+
         # Automaticky přepni do Výsledky tabu
         self.menu_buttons["Výsledky"].click()
 
     def _on_canvas_point_selected(self, point_id: str):
         """Canvas vybral bod - zvýrazni ho v tabulce"""
         logger.debug(f"[Session {self.session_name}] Canvas selected point: {point_id}")
-        # TODO: Phase 2 - highlight bod v VertebralPointsPanel
+        # Zvýrazni bod v tabulce
+        self.vertebral_panel.select_point(point_id)
+
+    def _on_table_point_selected(self, point_id: str):
+        """Tabulka vybrala bod - zvýrazni ho v canvas"""
+        logger.debug(f"[Session {self.session_name}] Table selected point: {point_id}")
+        # Zvýrazni bod v canvas
+        self.canvas_panel.select_point(point_id)
 
     def on_model_changed(self, model_name):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
@@ -696,3 +714,13 @@ class SessionScreen(QWidget):
                 self.menu_buttons["Body"].setEnabled(False)
                 self.menu_buttons["Výsledky"].setEnabled(False)
                 self.points_confirmed = False
+
+    def _on_point_moved(self, point_id: str, x: float, y: float):
+        """Bod se pohybuje - resetuj potvrzení bodů"""
+        if self.points_confirmed:
+            logger.info(f"[Session {self.session_name}] Bod {point_id} se pohybuje - resetuji potvrzení")
+            self.points_confirmed = False
+            # Zákáž Výsledky tab dokud se body znovu nepotvrdí
+            self.menu_buttons["Výsledky"].setEnabled(False)
+            # Vrať se na Body tab
+            self.menu_buttons["Body"].click()
