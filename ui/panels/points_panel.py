@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from points_panel import *
+"""Panel pro zobrazení vertebrálních bodů"""
+
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -10,30 +10,14 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QIcon, QPixmap, QDragEnterEvent, QDropEvent, QColor
+from PySide6.QtGui import QColor
 
-
-@dataclass
-class Point:
-    """Souřadnice bodu"""
-
-    x: float = 0.0
-    y: float = 0.0
-
-
-@dataclass
-class VertebralPoints:
-    """Body rohů obratlů (LT, RT, LB, RB - Left/Right Top/Bottom)"""
-
-    name: str  # C2, C3, C4, ...
-    lt: Point = field(default_factory=Point)  # Left Top
-    rt: Point = field(default_factory=Point)  # Right Top
-    lb: Point = field(default_factory=Point)  # Left Bottom
-    rb: Point = field(default_factory=Point)  # Right Bottom
+from core.models import Point, VertebralPoints
+from logger import logger
 
 
 class VertebralPointItem(QFrame):
-    """Widget pro zobrazení jednoho obratlů s jeho body"""
+    """Widget pro zobrazení jednoho obratle s jeho body"""
 
     def __init__(self, vertebral: VertebralPoints):
         super().__init__()
@@ -46,26 +30,32 @@ class VertebralPointItem(QFrame):
         layout.setContentsMargins(8, 6, 8, 6)
         layout.setSpacing(10)
 
-        # Levá strana: Souřadnice bodů
+        # Levá strana: Nadpis a souřadnice bodů
         left_layout = QVBoxLayout()
         left_layout.setSpacing(4)
 
-        # Nadpis obratlů
+        # Nadpis obratle
         title_label = QLabel(vertebral.name)
         title_label.setStyleSheet(
             "font-weight: bold; font-size: 18px; color: #333; margin-bottom: 4px;"
         )
         left_layout.addWidget(title_label)
 
-        # Body s barvnými indikátory
-        points_data = [
-            ("LT", vertebral.lt, QColor(255, 192, 203)),  # Pink
-            ("RT", vertebral.rt, QColor(144, 238, 144)),  # Light Green
-            ("LB", vertebral.lb, QColor(173, 216, 230)),  # Light Blue
-            ("RB", vertebral.rb, QColor(255, 255, 153)),  # Light Yellow
-        ]
+        # Barvy pro různé typy bodů
+        point_colors = {
+            'TL': QColor(255, 192, 203),      # Pink - Top Left
+            'TR': QColor(144, 238, 144),      # Light Green - Top Right
+            'BL': QColor(173, 216, 230),      # Light Blue - Bottom Left
+            'BR': QColor(255, 255, 153),      # Light Yellow - Bottom Right
+            'C': QColor(255, 200, 124),       # Light Orange - Centroid
+        }
 
-        for point_name, point, color in points_data:
+        # Dynamicky zobraz všechny body pro tento obratel
+        for point in vertebral.points:
+            # Extrahuj zkrácení z labelu (poslední část - "C2 top left" -> "TL")
+            point_abbr = self._get_point_abbreviation(point.label)
+            color = point_colors.get(point_abbr, QColor(200, 200, 200))  # Default grey
+
             row_layout = QHBoxLayout()
             row_layout.setSpacing(6)
             row_layout.setContentsMargins(0, 0, 0, 0)
@@ -79,7 +69,7 @@ class VertebralPointItem(QFrame):
             row_layout.addWidget(indicator)
 
             # Text s souřadnicemi
-            text = f"{point_name}: X: {point.x:.2f} Y: {point.y:.2f}"
+            text = f"{point_abbr}: X: {point.x:.2f} Y: {point.y:.2f}"
             label = QLabel(text)
             label.setStyleSheet("color: #666; font-size: 12px;")
             row_layout.addWidget(label)
@@ -89,8 +79,33 @@ class VertebralPointItem(QFrame):
 
         layout.addLayout(left_layout, stretch=1)
 
+    @staticmethod
+    def _get_point_abbreviation(label: str) -> str:
+        """Extrahuj zkrácení bodu z labelu
+
+        Args:
+            label: Plný label (např. "C2 top left", "C3 bottom right", "C4 centroid")
+
+        Returns:
+            Zkrácení (TL, TR, BL, BR, C)
+        """
+        label_lower = label.lower()
+
+        if 'centroid' in label_lower:
+            return 'C'
+        elif 'top left' in label_lower:
+            return 'TL'
+        elif 'top right' in label_lower:
+            return 'TR'
+        elif 'bottom left' in label_lower:
+            return 'BL'
+        elif 'bottom right' in label_lower:
+            return 'BR'
+        else:
+            return '?'
+
     def update_data(self, vertebral: VertebralPoints):
-        """Aktualizuj data obratlů"""
+        """Aktualizuj data obratle"""
         self.vertebral = vertebral
         self.update()
 
@@ -102,8 +117,7 @@ class VertebralPointsPanel(QFrame):
         super().__init__()
         self.vertebrals: list[VertebralPoints] = []
         self.init_ui()
-        # Inicializuj s ukázkovými daty
-        self.set_sample_data()
+        # Bez sample dat - čeka na set_vertebral_data()
 
     def init_ui(self):
         """Inicializuj UI"""
@@ -156,54 +170,6 @@ class VertebralPointsPanel(QFrame):
 
         scroll_area.setWidget(self.container_widget)
         layout.addWidget(scroll_area, stretch=1)
-
-    def set_sample_data(self):
-        """Nastav ukázková data pro testování"""
-        sample_vertebrals = [
-            VertebralPoints(
-                name="C2",
-                lt=Point(125.50, 180.75),
-                rt=Point(225.30, 182.10),
-                lb=Point(128.80, 265.40),
-                rb=Point(222.60, 267.85),
-            ),
-            VertebralPoints(
-                name="C3",
-                lt=Point(130.20, 275.60),
-                rt=Point(220.90, 278.30),
-                lb=Point(132.50, 360.15),
-                rb=Point(218.75, 362.95),
-            ),
-            VertebralPoints(
-                name="C4",
-                lt=Point(128.95, 370.10),
-                rt=Point(222.15, 372.80),
-                lb=Point(131.60, 455.25),
-                rb=Point(219.40, 458.05),
-            ),
-            VertebralPoints(
-                name="C5",
-                lt=Point(129.75, 465.50),
-                rt=Point(221.25, 468.20),
-                lb=Point(132.35, 550.30),
-                rb=Point(218.85, 553.10),
-            ),
-            VertebralPoints(
-                name="C6",
-                lt=Point(129.75, 465.50),
-                rt=Point(221.25, 468.20),
-                lb=Point(132.35, 550.30),
-                rb=Point(218.85, 553.10),
-            ),
-            VertebralPoints(
-                name="C7",
-                lt=Point(129.75, 465.50),
-                rt=Point(221.25, 468.20),
-                lb=Point(132.35, 550.30),
-                rb=Point(218.85, 553.10),
-            ),
-        ]
-        self.set_vertebral_data(sample_vertebrals)
 
     def set_vertebral_data(self, vertebrals: list[VertebralPoints]):
         """Nastav data obratlů a aktualizuj zobrazení"""

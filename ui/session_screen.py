@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (
+﻿from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
@@ -15,9 +15,11 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap, QDragEnterEvent, QDropEvent, QColor
 
 
-from drag_drop_frame import DragDropFrame
-from points_panel import VertebralPointsPanel
-
+from ui.panels.drag_drop_frame import DragDropFrame
+from ui.panels.points_panel import VertebralPointsPanel
+from core.models import MLInferenceSimulator
+from core.io import InferenceOutputHandler
+from logger import logger
 
 
 class SessionScreen(QWidget):
@@ -31,6 +33,11 @@ class SessionScreen(QWidget):
         self.image_confirmed = False  # Nový stav - potvrzení snímku
         self.inference_completed = False
         self.points_confirmed = False
+
+        # Inference setup
+        self.current_image_path = None
+        self.ml_inference = None  # ML model simulator
+        self.io_handler = InferenceOutputHandler()  # Handler pro zpracování výstupu
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
@@ -422,9 +429,6 @@ class SessionScreen(QWidget):
         workflow_layout.addWidget(self.stacked_widget, stretch=1)
         layout.addWidget(workflow_frame)
 
-
-
-
     def show_content(self, index):
         """Zobraz obsah podle vybraného menu - ale jen pokud jsou splněny podmínky"""
         menu_names = ["Nastavení", "Body", "Výsledky"]
@@ -484,6 +488,9 @@ class SessionScreen(QWidget):
         """Načti snímek a zobraz ho + aktivuj potvrzovací tlačítka"""
         pixmap = QPixmap(file_path)
         if not pixmap.isNull():
+            # Uložit cestu pro pozdější použití v inference
+            self.current_image_path = file_path
+
             # Přizpůsobi velikost obrázku do dostupného místa
             max_size = 800  # max rozměr
             scaled_pixmap = pixmap.scaledToWidth(max_size, Qt.SmoothTransformation)
@@ -541,11 +548,36 @@ class SessionScreen(QWidget):
         self.inference_button.setEnabled(True)
 
     def on_inference_clicked(self):
-        """Obsluha kliknutí na 'Spustit Inferenci'"""
-        if self.image_loaded:
-            # TODO: Sem přijde skutečná inference logika
-            print(f"[Session {self.session_name}] Inference spuštěna")
-            self.inference_completed = True
+        """Spusť ML inference a zobraz výsledky v points panelu"""
+        if not self.image_confirmed or not self.current_image_path:
+            logger.warning(f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí")
+            return
+
+        try:
+            # Inicializuj ML model pokud neexistuje
+            if self.ml_inference is None:
+                self.ml_inference = MLInferenceSimulator()
+
+            # Spusť inference - z uživatelské perspektivy to jen pracuje s obrázkem
+            logger.info(f"[Session {self.session_name}] Inference spuštěna pro: {self.current_image_path}")
+            inference_json = self.ml_inference.predict(self.current_image_path)
+
+            if not inference_json:
+                logger.error(f"[Session {self.session_name}] Inference vrátila None")
+                return
+
+            # Zpracuj JSON výstup na VertebralPoints pro UI
+            vertebral_results = self.io_handler.parse_inference_output(inference_json)
+
+            if vertebral_results:
+                logger.info(f"[Session {self.session_name}] Inference úspěšná - {len(vertebral_results)} obratlů")
+                # Předej výsledky points panelu
+                self.vertebral_panel.set_vertebral_data(vertebral_results)
+                self.inference_completed = True
+            else:
+                logger.warning(f"[Session {self.session_name}] Parsing vrátil prázdný seznam")
+                return
+
             # Aktivuj Body po dokončení inference
             self.menu_buttons["Body"].setEnabled(True)
             self.inference_button.setText("✓ Inference hotova")
@@ -554,10 +586,14 @@ class SessionScreen(QWidget):
             # Automaticky přepni do Body tabu
             self.menu_buttons["Body"].click()
 
+        except Exception as e:
+            logger.error(f"[Session {self.session_name}] Chyba při inference: {e}")
+            import traceback
+            traceback.print_exc()
+
     def on_confirm_points_clicked(self):
         """Obsluha kliknutí na 'Potvrdit body' - lze volat opakovaně"""
-        # TODO: Sem přijde logika potvrzení bodů
-        print(f"[Session {self.session_name}] Body potvrzeny")
+        logger.info(f"[Session {self.session_name}] Body potvrzeny")
         self.points_confirmed = True
         # Aktivuj Výsledky po potvrzení bodů
         self.menu_buttons["Výsledky"].setEnabled(True)
@@ -567,7 +603,7 @@ class SessionScreen(QWidget):
 
     def on_model_changed(self, model_name):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
-        print(f"[Session {self.session_name}] Model změněn na: {model_name}")
+        logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
 
         # Zobraz/skryj parametry box podle modelu
         is_model_2 = (model_name == "model 2")

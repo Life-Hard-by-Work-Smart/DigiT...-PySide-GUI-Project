@@ -1,0 +1,41 @@
+[2026-03-18 21:53:33] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-18 21:53:34] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-18 21:53:34] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-18 21:53:43] [DigiTech] [DEBUG] Model změněn na: model 2
+[2026-03-18 21:53:44] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-18 21:53:44] [DigiTech] [INFO] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-18 21:53:44] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-18 21:53:44] [DigiTech] [INFO] Inference úspěšná - 6 obratlů
+[2026-03-18 21:53:46] [DigiTech] [INFO] Body potvrzeny
+[2026-03-18 22:41:37] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-18 22:46:22] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-18 22:46:22] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-18 22:46:22] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-18 22:49:15] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-18 22:49:15] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-18 22:49:15] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-18 22:49:21] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-18 22:49:21] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-18 22:49:21] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-18 22:49:21] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-18 22:49:23] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-18 22:49:33] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-18 22:49:34] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-18 22:49:34] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-18 22:51:51] [DigiTech] [INFO] MainWindow inicializován
+[2026-03-18 22:51:51] [DigiTech] [INFO] Nová session vytvořena: Session 1
+[2026-03-18 22:51:51] [DigiTech] [INFO] Aplikace spuštěna
+[2026-03-18 22:51:54] [DigiTech] [INFO] Nová session vytvořena: Session 2
+[2026-03-18 22:51:55] [DigiTech] [INFO] Session zavřena
+[2026-03-18 22:52:02] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-18 22:52:02] [DigiTech] [INFO] [Session Session 1] Inference spuštěna pro: C:/GitHub/DigiT...-PySide-GUI-Project/testing_data/0001035_image.png
+[2026-03-18 22:52:02] [DigiTech] [INFO] ✓ Obrázek je validní testovací obrázek - vráceny expected results
+[2026-03-18 22:52:02] [DigiTech] [INFO] [Session Session 1] Inference úspěšná - 6 obratlů
+[2026-03-18 22:52:04] [DigiTech] [INFO] [Session Session 1] Body potvrzeny
+[2026-03-18 22:52:08] [DigiTech] [INFO] Nová session vytvořena: Session 3
+[2026-03-18 22:52:18] [DigiTech] [DEBUG] [Session Session 3] Model změněn na: model 2
+[2026-03-18 22:52:18] [DigiTech] [INFO] MLInferenceSimulator inicializován
+[2026-03-18 22:52:18] [DigiTech] [INFO] [Session Session 3] Inference spuštěna pro: C:/Users/Administrator/Pictures/BPSR_STEAM/20251012160156_425_425180.png
+[2026-03-18 22:52:18] [DigiTech] [INFO] ✗ Obrázek se nejedná o testovací obrázek - vrácena sample data
+[2026-03-18 22:52:18] [DigiTech] [INFO] [Session Session 3] Inference úspěšná - 3 obratlů
+[2026-03-18 22:52:25] [DigiTech] [INFO] [Session Session 3] Body potvrzeny
