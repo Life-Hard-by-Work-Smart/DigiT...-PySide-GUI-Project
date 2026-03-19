@@ -374,6 +374,8 @@ class SessionScreen(QWidget):
         self.vertebral_panel = VertebralPointsPanel()
         # Phase 2: Když se klikne na bod v tabulce, zvýrazni ho v canvas
         self.vertebral_panel.pointSelected.connect(self._on_table_point_selected)
+        # Phase 3.3: Když se resetuje bod, vrať ho na original ML coords
+        self.vertebral_panel.pointReset.connect(self._on_point_reset_clicked)
         content_layout_2_main.addWidget(self.vertebral_panel, stretch=1)
 
         # confirm points button - bottom
@@ -663,6 +665,23 @@ class SessionScreen(QWidget):
         # Zvýrazni bod v canvas
         self.canvas_panel.select_point(point_id)
 
+    def _on_point_reset_clicked(self, point_id: str):
+        """Phase 3.3: Bod byl resetován - vrať na original ML souřadnice"""
+        logger.debug(f"[Session {self.session_name}] Point reset: {point_id}")
+
+        # Najdi bod v data model a vrať ho na original souřadnice
+        for vertebral in self.vertebral_panel.vertebrals:
+            for point in vertebral.points:
+                if point.label == point_id:
+                    logger.info(f"[Session {self.session_name}] Resetuji bod {point_id} z ({point.x:.1f}, {point.y:.1f}) na ({point.original_x:.1f}, {point.original_y:.1f})")
+                    point.x = point.original_x
+                    point.y = point.original_y
+                    # Updatuj tabulku
+                    self.vertebral_panel.update_coordinates(point_id, point.x, point.y)
+                    # Updatuj canvas
+                    self.canvas_panel.update_point_position(point_id, point.x, point.y)
+                    return
+
     def on_model_changed(self, model_name):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
         logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
@@ -716,7 +735,27 @@ class SessionScreen(QWidget):
                 self.points_confirmed = False
 
     def _on_point_moved(self, point_id: str, x: float, y: float):
-        """Bod se pohybuje - resetuj potvrzení bodů"""
+        """Bod se pohybuje - resetuj potvrzení bodů + updatuj tabulku"""
+        logger.debug(f"[Session {self.session_name}] Point moved: {point_id} → ({x:.1f}, {y:.1f})")
+
+        # Phase 3.4: Update data model - aktualizuj bod v vertebral_panel
+        # Najdi bod v tabulce a updatuj jeho souřadnice
+        found = False
+        for vertebral in self.vertebral_panel.vertebrals:
+            for point in vertebral.points:
+                if point.label == point_id:
+                    logger.debug(f"Found point {point_id}, updating from ({point.x}, {point.y}) to ({x}, {y})")
+                    point.x = x
+                    point.y = y
+                    found = True
+                    break
+
+        if not found:
+            logger.warning(f"[Session {self.session_name}] Point {point_id} NOT found in vertebral_panel!")
+
+        # Update tabulka UI s novými souřadnicemi
+        self.vertebral_panel.update_coordinates(point_id, x, y)
+
         if self.points_confirmed:
             logger.info(f"[Session {self.session_name}] Bod {point_id} se pohybuje - resetuji potvrzení")
             self.points_confirmed = False
