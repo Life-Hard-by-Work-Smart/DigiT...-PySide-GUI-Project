@@ -483,7 +483,8 @@ class SessionScreen(QWidget):
         # Řídí viditelnost UI prvků podle tabu
         self.update_ui_visibility(index)
 
-        # Deselektuj bod když se přepínáš mezi taby
+        # Deselektuj bod POUZE když se přepínáš mezi taby (z menu tlačítka)
+        # NE když se bod vybere v canvasu!
         self.canvas_panel.deselect_point()
         self.vertebral_panel.deselect_all()
 
@@ -522,8 +523,6 @@ class SessionScreen(QWidget):
             self.image_loaded = True
             self.delete_image_btn.setEnabled(True)
             self.confirm_image_btn.setEnabled(True)
-
-            logger.info(f"[Session {self.session_name}] Obrázek načten: {file_path} ({pixmap.width()}x{pixmap.height()})")
 
             logger.info(f"[Session {self.session_name}] Obrázek načten: {file_path} ({pixmap.width()}x{pixmap.height()})")
 
