@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QPushButton
 
 from core.models import Point, VertebralPoints
 from logger import logger
+import config
 
 
 class VertebralPointItem(QFrame):
@@ -50,20 +51,35 @@ class VertebralPointItem(QFrame):
         )
         left_layout.addWidget(title_label)
 
-        # Barvy pro různé typy bodů
+        # Barvy pro různé typy bodů - používáme obě klíče (zkratka i plný text)
         point_colors = {
-            'TL': QColor(255, 192, 203),      # Pink - Top Left
-            'TR': QColor(144, 238, 144),      # Light Green - Top Right
-            'BL': QColor(173, 216, 230),      # Light Blue - Bottom Left
-            'BR': QColor(255, 255, 153),      # Light Yellow - Bottom Right
-            'C': QColor(255, 200, 124),       # Light Orange - Centroid
+            'TL': QColor(255, 192, 203),           # Pink - Top Left
+            'TR': QColor(144, 238, 144),           # Light Green - Top Right
+            'BL': QColor(173, 216, 230),           # Light Blue - Bottom Left
+            'BR': QColor(255, 255, 153),           # Light Yellow - Bottom Right
+            'C': QColor(255, 200, 124),            # Light Orange - Centroid
+            'top left': QColor(255, 192, 203),      # Pink - Top Left
+            'top right': QColor(144, 238, 144),     # Light Green - Top Right
+            'bottom left': QColor(173, 216, 230),   # Light Blue - Bottom Left
+            'bottom right': QColor(255, 255, 153),  # Light Yellow - Bottom Right
+            'centroid': QColor(255, 200, 124),      # Light Orange - Centroid
         }
 
         # Dynamicky zobraz všechny body pro tento obratel
         for point in vertebral.points:
             # Extrahuj zkrácení z labelu (poslední část - "C2 top left" -> "TL")
             point_abbr = self._get_point_abbreviation(point.label)
-            color = point_colors.get(point_abbr, QColor(200, 200, 200))  # Default grey
+
+            # Zobraz label podle config: zkratka nebo plný label
+            if config.USE_ABBREVIATED_LABELS:
+                display_label = point_abbr
+                color_key = point_abbr
+            else:
+                # Plný label: extrahuj část za obratle (C2 top left -> top left)
+                display_label = ' '.join(point.label.split()[1:]) if ' ' in point.label else point.label
+                color_key = display_label
+
+            color = point_colors.get(color_key, QColor(200, 200, 200))  # Default grey
 
             row_layout = QHBoxLayout()
             row_layout.setSpacing(6)
@@ -77,8 +93,7 @@ class VertebralPointItem(QFrame):
             )
             row_layout.addWidget(indicator)
 
-            # Text s souřadnicemi - KLIKATELNÉ TLAČÍTKO
-            text = f"{point_abbr}: X: {point.x:.2f} Y: {point.y:.2f}"
+            text = f"{display_label}: X: {point.x:.2f} Y: {point.y:.2f}"
             point_button = QPushButton(text)
             point_button.setFlat(True)
             point_button.setStyleSheet("""
@@ -86,7 +101,7 @@ class VertebralPointItem(QFrame):
                     color: #666;
                     font-size: 12px;
                     text-align: left;
-                    padding: 2px 4px;
+                    padding: 1px 3px;
                     border: 1px solid transparent;
                     border-radius: 3px;
                 }
@@ -104,7 +119,7 @@ class VertebralPointItem(QFrame):
             # Connect signal
             point_button.clicked.connect(lambda checked=False, pid=point_id: self._on_point_clicked(pid))
 
-            row_layout.addWidget(point_button)
+            row_layout.addWidget(point_button, stretch=1)  # Strchuj levě, stretch=1
 
             # Phase 3.3: Reset button - vrátit bod na original ML coords
             reset_button = QPushButton("↶")  # Reset symbol
