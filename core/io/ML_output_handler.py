@@ -51,7 +51,7 @@ class InferenceOutputHandler:
 
             # Přidej bod s plným labelem
             x, y = points[0][0], points[0][1]
-            point = Point(x=x, y=y, label=label)
+            point = Point(x=x, y=y, label=label, original_x=x, original_y=y)  # Phase 3.3: Ulož originální coords
             vertebrals_dict[vertebral_name].points.append(point)
 
         # Seřaď obratlů podle jména (C2, C3, C4, ...)

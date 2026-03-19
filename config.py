@@ -53,7 +53,7 @@ ALLOW_POINTS_OUTSIDE_IMAGE = False    # Keep points within image bounds
 # Canvas - Point Editing
 RESTRICT_SELECTION_TO_TABLE = True    # Only table allows point selection (no direct canvas click)
 ARROW_KEY_STEP = 1                    # Pixel per arrow key press
-ARROW_KEY_STEP_SHIFT = 5              # Pixel per Shift+arrow key press
+ARROW_KEY_STEP_SHIFT = 0.33              # Pixel per Shift+arrow key press
 
 # Inference
 INFERENCE_TIMEOUT = 30  # sekund

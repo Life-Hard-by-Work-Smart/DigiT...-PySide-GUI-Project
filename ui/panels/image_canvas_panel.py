@@ -21,6 +21,8 @@ from config import (
     SHOW_POINT_LABELS,
     ZOOM_STEP,
     AUTO_FIT_IMAGE,
+    ARROW_KEY_STEP,                  # Pixel per arrow key press
+    ARROW_KEY_STEP_SHIFT,
     ALLOW_POINTS_OUTSIDE_IMAGE,
 )
 from logger import logger
@@ -43,6 +45,8 @@ class PointsOverlay(QWidget):
         self.selected_point_id: str = None
         self.dragging = False
         self.drag_start_pos = None
+        self.dragging_point = False  # True když táhneme bod (ne pan)
+        self.dragging_point_id = None  # Který bod se právě táhne
 
         # Zoom & Pan
         self.zoom_level = 1.0
@@ -266,6 +270,7 @@ class PointsOverlay(QWidget):
         if event.button() == Qt.LeftButton:
             # Pokud je bod pod kurzorem
             point_id = self._get_point_at_coords(x, y)
+            logger.debug(f"Canvas: left click at ({x}, {y}), point_id={point_id}")
 
             if point_id:
                 # Je bod - vyberi ho POUZE pokud NE spacebar
@@ -273,7 +278,13 @@ class PointsOverlay(QWidget):
                     self.selected_point_id = point_id
                     self.pointSelected.emit(point_id)
                     logger.debug(f"Canvas: point selected {point_id}")
+                    # Phase 3: Start point dragging
+                    self.dragging_point = True
+                    self.dragging_point_id = point_id
+                    self.drag_start_pos = QPoint(x, y)
+                    logger.debug(f"Canvas: START DRAGGING point {point_id}")
                     self.update()
+                    return
 
             # Pokud spacebar, aktivuj pan
             if self.space_pressed:
@@ -289,6 +300,34 @@ class PointsOverlay(QWidget):
 
     def mouseMoveEvent(self, event):
         """Drag bod nebo pan canvas"""
+        x, y = event.position().x(), event.position().y()
+
+        # Phase 3: Pokud táhneme bod
+        if self.dragging_point and self.dragging_point_id:
+            logger.debug(f"Canvas: dragging point {self.dragging_point_id}")
+            # Převeď canvas coords na image coords
+            image_x, image_y = self._canvas_to_image_coords(x, y)
+
+            # Bounds check - bod musí zůstat v image
+            if self.image:
+                image_x = max(0, min(image_x, self.image.width() - 1))
+                image_y = max(0, min(image_y, self.image.height() - 1))
+
+            # Update bod v data model
+            point = self.vertebral_points.get(self.dragging_point_id)
+            if point:
+                point.x = image_x
+                point.y = image_y
+                # Emit signal - tabulka se updatuje
+                self.pointMoved.emit(self.dragging_point_id, image_x, image_y)
+                logger.debug(f"Canvas: point {self.dragging_point_id} moved to ({image_x:.1f}, {image_y:.1f})")
+            else:
+                logger.warning(f"Canvas: point {self.dragging_point_id} NOT FOUND in vertebral_points!")
+
+            self.update()
+            return
+
+        # Pan mode (původní logika)
         if self.dragging and self.drag_start_pos:
             # Pan mode: move canvas
             delta = QPoint(event.position().x(), event.position().y()) - self.drag_start_pos
@@ -299,8 +338,14 @@ class PointsOverlay(QWidget):
             self.update()
 
     def mouseReleaseEvent(self, event):
-        """Ukonči pan"""
+        """Ukonči pan nebo tahání bodu"""
         if event.button() == Qt.MiddleButton or event.button() == Qt.LeftButton:
+            # Phase 3: Stop point dragging
+            if self.dragging_point:
+                self.dragging_point = False
+                self.dragging_point_id = None
+                logger.debug("Canvas: point drag finished")
+
             self.dragging = False
             self.drag_start_pos = None
 
@@ -347,15 +392,54 @@ class PointsOverlay(QWidget):
     # ===== KEYBOARD EVENTS =====
 
     def keyPressEvent(self, event):
-        """Klávesnice pro pan + future editing"""
+        """Klávesnice pro pan + point editing"""
         if event.key() == Qt.Key_Space and not event.isAutoRepeat():
             self.space_pressed = True
             logger.debug("Canvas: Space pressed - pan mode ON")
         elif event.key() == Qt.Key_Escape:
             self.selected_point_id = None
             self.update()
-        else:
-            super().keyPressEvent(event)
+        # Phase 3.2: Arrow keys pro posun bodu
+        elif self.selected_point_id and not event.isAutoRepeat():
+            point = self.vertebral_points.get(self.selected_point_id)
+            if point:
+                # Zjisti step (1 nebo 5)
+                step = ARROW_KEY_STEP_SHIFT if event.modifiers() & Qt.ShiftModifier else ARROW_KEY_STEP # Pixel per arrow key press
+
+
+                # Zjisti směr
+                delta_x, delta_y = 0, 0
+                if event.key() == Qt.Key_Left:
+                    delta_x = -step
+                elif event.key() == Qt.Key_Right:
+                    delta_x = step
+                elif event.key() == Qt.Key_Up:
+                    delta_y = -step
+                elif event.key() == Qt.Key_Down:
+                    delta_y = step
+
+                # Pokud se pohybujeme
+                if delta_x != 0 or delta_y != 0:
+                    # Update bod
+                    new_x = point.x + delta_x
+                    new_y = point.y + delta_y
+
+                    # Bounds check
+                    if self.image:
+                        new_x = max(0, min(new_x, self.image.width() - 1))
+                        new_y = max(0, min(new_y, self.image.height() - 1))
+
+                    point.x = new_x
+                    point.y = new_y
+
+                    # Emit signal
+                    self.pointMoved.emit(self.selected_point_id, new_x, new_y)
+                    logger.debug(f"Canvas: point {self.selected_point_id} moved by arrow to ({new_x:.1f}, {new_y:.1f})")
+
+                    self.update()
+                    return
+
+        super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
         """Ukonči spacebar pan"""
@@ -421,6 +505,7 @@ class ImageCanvasPanel(QWidget):
         # Canvas
         self.canvas = PointsOverlay()
         self.canvas.pointSelected.connect(self._on_point_selected)
+        self.canvas.pointMoved.connect(self._on_point_moved)  # Phase 3.4: Relay pointMoved signal
         layout.addWidget(self.canvas, stretch=1)  # DŮLEŽITÉ: stretch=1 aby se expandoval!
 
         # Status bar (placeholder) - SKRYJ aby se canvas zobrazoval na plno
@@ -447,6 +532,10 @@ class ImageCanvasPanel(QWidget):
     def _on_point_selected(self, point_id: str):
         """Canvas vybral bod -> emit signal"""
         self.pointSelected.emit(point_id)
+
+    def _on_point_moved(self, point_id: str, x: float, y: float):
+        """Phase 3.4: Canvas pohyboval bodem -> relay signal"""
+        self.pointMoved.emit(point_id, x, y)
 
     def select_point(self, point_id: str):
         """Highlight bod z external source (např. tabulka)"""

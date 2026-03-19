@@ -22,6 +22,7 @@ class VertebralPointItem(QFrame):
 
     # Signal emitovaný když se klikne na bod
     pointSelected = Signal(str)  # point_id
+    pointReset = Signal(str)  # Phase 3.3: point_id - emituj když se resetuje bod
 
     def __init__(self, vertebral: VertebralPoints):
         super().__init__()
@@ -104,6 +105,34 @@ class VertebralPointItem(QFrame):
             point_button.clicked.connect(lambda checked=False, pid=point_id: self._on_point_clicked(pid))
 
             row_layout.addWidget(point_button)
+
+            # Phase 3.3: Reset button - vrátit bod na original ML coords
+            reset_button = QPushButton("↶")  # Reset symbol
+            reset_button.setFixedWidth(30)
+            reset_button.setFixedHeight(20)
+            reset_button.setFlat(True)
+            reset_button.setStyleSheet("""
+                QPushButton {
+                    color: #999;
+                    font-size: 11px;
+                    border: 1px solid #ddd;
+                    border-radius: 3px;
+                    background-color: #fafafa;
+                    padding: 1px;
+                }
+                QPushButton:hover {
+                    background-color: #f0f0f0;
+                    color: #666;
+                    border: 1px solid #bbb;
+                }
+            """)
+            reset_button.setToolTip(f"Vrátit bod {point_id} na původní ML souřadnice")
+            reset_button.setCursor(Qt.PointingHandCursor)
+            reset_button.clicked.connect(
+                lambda checked=False, pid=point_id: self._on_reset_clicked(pid)
+            )
+
+            row_layout.addWidget(reset_button)
             row_layout.addStretch()
 
             left_layout.addLayout(row_layout)
@@ -147,6 +176,11 @@ class VertebralPointItem(QFrame):
         # Vizuálně zvýrazni bod
         self._update_point_highlight()
         logger.debug(f"VertebralPointItem: point {point_id} selected")
+
+    def _on_reset_clicked(self, point_id: str):
+        """Phase 3.3: Resetuj bod na original ML souřadnice"""
+        logger.debug(f"VertebralPointItem: reset clicked for {point_id}")
+        self.pointReset.emit(point_id)
 
     def select_point(self, point_id: str):
         """Zvýrazni bod (voláno z canvas nebo programově)"""
@@ -196,12 +230,29 @@ class VertebralPointItem(QFrame):
                     }
                 """)
 
+    def update_coordinates(self, point_id: str, x: float, y: float):
+        """Phase 3.4: Update text tlačítka s novými souřadnicemi"""
+        logger.debug(f"VertebralPointItem.update_coordinates: {point_id} → ({x:.1f}, {y:.1f})")
+        button = self.point_buttons.get(point_id)
+        if button:
+            # Extrahuj zkrácení typu bodu
+            point_abbr = self._get_point_abbreviation(point_id)
+            # Update text s novými souřadnicemi
+            new_text = f"{point_abbr}: X: {x:.2f} Y: {y:.2f}"
+            logger.debug(f"Setting button text to: {new_text}")
+            button.setText(new_text)
+            button.repaint()  # Force repaint
+            logger.debug(f"Button repainted")
+        else:
+            logger.warning(f"VertebralPointItem: button for {point_id} NOT found!")
+
 
 class VertebralPointsPanel(QFrame):
     """Panel pro zobrazení všech bodů obratlů"""
 
     # Signal emitovaný když uživatel vybere bod v tabulce
     pointSelected = Signal(str)  # point_id
+    pointReset = Signal(str)  # Phase 3.3: point_id - emituj když se resetuje bod
 
     def __init__(self):
         super().__init__()
@@ -281,6 +332,7 @@ class VertebralPointsPanel(QFrame):
             item = VertebralPointItem(vertebral)
             # Propoj signal - když se klikne na bod v tabulce, vylej signal nahoru
             item.pointSelected.connect(self._on_point_selected)
+            item.pointReset.connect(self._on_point_reset)  # Phase 3.3: Connect reset signal
             self.vertebral_items.append(item)
             self.container_layout.addWidget(item)
 
@@ -290,6 +342,11 @@ class VertebralPointsPanel(QFrame):
         """Bod byl vybrán v tabulce"""
         self.pointSelected.emit(point_id)
         logger.debug(f"VertebralPointsPanel: point {point_id} selected")
+
+    def _on_point_reset(self, point_id: str):
+        """Phase 3.3: Bod byl resetován v tabulce"""
+        self.pointReset.emit(point_id)
+        logger.debug(f"VertebralPointsPanel: point {point_id} reset")
 
     def select_point(self, point_id: str):
         """Zvýrazni bod programově (voleno z canvas)"""
@@ -304,3 +361,23 @@ class VertebralPointsPanel(QFrame):
         """Zrušit zvýraznění všech bodů"""
         for item in self.vertebral_items:
             item.deselect_point()
+
+    def update_coordinates(self, point_id: str, x: float, y: float):
+        """Phase 3.4: Update souřadnice bodu v tabulce - live sync z canvas"""
+        logger.debug(f"VertebralPointsPanel.update_coordinates called: {point_id} → ({x:.1f}, {y:.1f})")
+        logger.debug(f"VertebralPointsPanel: vertebral_items count = {len(self.vertebral_items)}")
+
+        found = False
+        for item in self.vertebral_items:
+            logger.debug(f"Checking item, point_buttons keys: {list(item.point_buttons.keys())}")
+            if point_id in item.point_buttons:
+                logger.debug(f"FOUND! Calling item.update_coordinates")
+                item.update_coordinates(point_id, x, y)
+                item.update()  # Refresh the item widget
+                self.update()  # Refresh the panel
+                logger.debug(f"VertebralPointsPanel: updated {point_id} to ({x:.1f}, {y:.1f})")
+                found = True
+                break
+
+        if not found:
+            logger.warning(f"VertebralPointsPanel: point {point_id} NOT found in any item!")

@@ -9,6 +9,8 @@ class Point:
     x: float = 0.0
     y: float = 0.0
     label: str = ""  # Plný label (např. "C2 top left")
+    original_x: float = 0.0  # Phase 3.3: Původní ML koordináta
+    original_y: float = 0.0  # Phase 3.3: Původní ML koordináta
 
 
 @dataclass
