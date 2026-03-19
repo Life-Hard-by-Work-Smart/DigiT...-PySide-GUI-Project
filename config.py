@@ -40,13 +40,17 @@ POINT_COLORS_MODEL_2 = {
     'C': QColor(255, 192, 203),       # Pink - Centroid (bylo TL)
 }
 
-POINT_RADIUS = 2                      # Radius in pixels (diameter = 8px)
-POINT_SELECTED_RADIUS = 3             # Selected: radius in pixels (diameter = 12px)
-POINT_CLICK_RADIUS = 4                # Hitbox radius in pixels (14px diameter)
+POINT_RADIUS = 3                      # Radius in pixels (diameter = 8px)
+POINT_SELECTED_RADIUS = 4             # Selected: radius in pixels (diameter = 12px)
+POINT_CLICK_RADIUS = 5                # Hitbox radius in pixels (14px diameter)
 SHOW_POINT_LABELS = True              # Show TL/TR/BL/BR/C labels on canvas
+PICTURE_FONT_SIZE = 10
+
 
 # Points Panel - Label Display
 USE_ABBREVIATED_LABELS = False        # False = plné labely (top left, bottom right), True = zkratky (TL, BR)
+
+
 
 # Canvas - Pan/Zoom Controls
 ZOOM_STEP = 1.1                       # Scroll zoom increment

@@ -23,6 +23,7 @@ from config import (
     AUTO_FIT_IMAGE,
     ARROW_KEY_STEP,                  # Pixel per arrow key press
     ARROW_KEY_STEP_SHIFT,
+    PICTURE_FONT_SIZE,
     ALLOW_POINTS_OUTSIDE_IMAGE,
 )
 from logger import logger
@@ -279,7 +280,7 @@ class PointsOverlay(QWidget):
             # Nakresli label (pokud je zapnuté)
             if SHOW_POINT_LABELS:
                 painter.setPen(QPen(QColor(0, 255, 0), 1))  # Radioaktivní zelená ☢️
-                painter.setFont(QFont("Arial", 8))
+                painter.setFont(QFont("Arial", PICTURE_FONT_SIZE))
                 painter.drawText(canvas_x + radius + 2, canvas_y + radius + 2, point_label)
 
         # === ZOOM INDICATOR - v pravém horním rohu ===
