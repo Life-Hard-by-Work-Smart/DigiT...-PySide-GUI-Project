@@ -132,7 +132,15 @@ class PointsOverlay(QWidget):
         self.update()
 
     def _get_point_abbreviation(self, label: str) -> str:
-        """Extrahuj typ bodu z labelu (C2 top left -> TL)"""
+        """Extrahuj typ bodu z labelu - vrací plný text (C2 top left -> top left)"""
+        # Extrahuj část za obratle (C2 top left -> top left)
+        parts = label.split()
+        if len(parts) > 1:
+            return ' '.join(parts[1:])
+        return label
+
+    def _get_point_abbreviation_short(self, label: str) -> str:
+        """Extrahuj typ bodu z labelu - vrací zkratku (C2 top left -> TL)"""
         label = label.upper()
         if "TOP" in label and "LEFT" in label:
             return "TL"
@@ -177,7 +185,7 @@ class PointsOverlay(QWidget):
         return None
 
     def _clamp_pan_offset(self):
-        """Když se obrázek dostane k hranám, vycentruj ho místo clamping"""
+        """Smooth bounds clamping - žádné sudden jumps, jenom limituj k hranicím"""
         if self.image is None:
             return
 
@@ -188,20 +196,34 @@ class PointsOverlay(QWidget):
         scaled_w = int(image_size.width() * self.zoom_level)
         scaled_h = int(image_size.height() * self.zoom_level)
 
-        logger.debug(f"Canvas: _clamp_pan_offset called: canvas={canvas_size.width()}x{canvas_size.height()}, scaled={scaled_w}x{scaled_h}")
+        logger.debug(f"Canvas: _clamp_pan_offset: canvas={canvas_size.width()}x{canvas_size.height()}, scaled={scaled_w}x{scaled_h}, zoom={self.zoom_level:.2f}x")
 
-        # Pokud je obrázek MENŠÍ než canvas, vždy ho centrej
-        if scaled_w < canvas_size.width():
+        # SMOOTH CLAMPING: Pokud je obrázek VĚTŠÍ než canvas, limituj pan k hranicím
+        if scaled_w > canvas_size.width():
+            # Pan může být 0 až (obrázek_width - canvas_width)
+            max_pan_x = canvas_size.width() - scaled_w
+            if self.pan_offset.x() > 0:
+                self.pan_offset.setX(0)
+            elif self.pan_offset.x() < max_pan_x:
+                self.pan_offset.setX(max_pan_x)
+        else:
+            # Obrázek je MENŠÍ - centrej ho aby vypadal lépe
             center_x = (canvas_size.width() - scaled_w) // 2
             self.pan_offset.setX(center_x)
-            logger.debug(f"Canvas: centering X: center_x={center_x}")
 
-        if scaled_h < canvas_size.height():
+        if scaled_h > canvas_size.height():
+            # Pan může být 0 až (obrázek_height - canvas_height)
+            max_pan_y = canvas_size.height() - scaled_h
+            if self.pan_offset.y() > 0:
+                self.pan_offset.setY(0)
+            elif self.pan_offset.y() < max_pan_y:
+                self.pan_offset.setY(max_pan_y)
+        else:
+            # Obrázek je MENŠÍ - centrej ho
             center_y = (canvas_size.height() - scaled_h) // 2
             self.pan_offset.setY(center_y)
-            logger.debug(f"Canvas: centering Y: center_y={center_y}")
 
-        logger.debug(f"Canvas: pan_offset after clamp = {self.pan_offset}")
+        logger.debug(f"Canvas: pan_offset after smooth clamp = {self.pan_offset}")
 
     # ===== PAINT =====
 
@@ -224,7 +246,8 @@ class PointsOverlay(QWidget):
 
             # Vyber barvu a radius
             is_selected = point_id == self.selected_point_id
-            point_abbr = self._get_point_abbreviation(point_id)
+            point_label = self._get_point_abbreviation(point_id)  # Plný text pro display
+            point_abbr = self._get_point_abbreviation_short(point_id)  # Zkratka pro barvu
             color = self.point_colors.get(point_abbr, QColor(200, 200, 200))
 
             # Pokud je vybraný, nastav jasnější barvu
@@ -255,9 +278,36 @@ class PointsOverlay(QWidget):
 
             # Nakresli label (pokud je zapnuté)
             if SHOW_POINT_LABELS:
-                painter.setPen(QPen(QColor(0, 0, 0), 1))
+                painter.setPen(QPen(QColor(0, 255, 0), 1))  # Radioaktivní zelená ☢️
                 painter.setFont(QFont("Arial", 8))
-                painter.drawText(canvas_x + radius + 2, canvas_y + radius + 2, point_abbr)
+                painter.drawText(canvas_x + radius + 2, canvas_y + radius + 2, point_label)
+
+        # === ZOOM INDICATOR - v pravém horním rohu ===
+        zoom_text = f"Zoom: {self.zoom_level:.2f}x"
+        painter.setFont(QFont("Arial", 9, weight=QFont.Bold))
+
+        # Vypočítej text velikost
+        font_metrics = painter.fontMetrics()
+        text_width = font_metrics.horizontalAdvance(zoom_text)
+        text_height = font_metrics.height()
+
+        # Pozice v pravém horním rohu
+        margin = 3
+        padding = 6
+        box_width = text_width + padding * 2
+        box_height = text_height + padding * 2
+
+        x = self.width() - box_width - margin
+        y = margin
+
+        # Nakresli zakulacený bílý box
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor(255, 255, 255))  # Bílé pozadí
+        painter.drawRoundedRect(int(x), int(y), int(box_width), int(box_height), 6, 6)
+
+        # Nakresli černý text
+        painter.setPen(QPen(QColor(0, 0, 0), 1))
+        painter.drawText(int(x + padding), int(y + padding + font_metrics.ascent()), zoom_text)
 
         painter.end()
 
@@ -464,6 +514,50 @@ class PointsOverlay(QWidget):
         self.selected_point_id = point_id
         self.update()
 
+    def focus_on_point(self, point_id: str):
+        """Auto-focus na bod: zoomuj a panuj aby byl bod uprostřed canvasu
+
+        Použití: když se bod vybere v tabulce, chceme vidět ho v centru
+        """
+        if point_id not in self.vertebral_points:
+            logger.warning(f"Canvas: focus_on_point - bod {point_id} nenalezen")
+            return
+
+        point = self.vertebral_points[point_id]
+
+        # Nastavit zoom na 2.5x pro pohodlné editování
+        self.zoom_level = 2.5
+        logger.debug(f"Canvas: focus_on_point {point_id} - zoom set to 2.5x")
+
+        canvas_size = self.size()
+        image_size = self.image.size() if self.image else None
+        if not image_size:
+            return
+
+        scaled_w = int(image_size.width() * self.zoom_level)
+        scaled_h = int(image_size.height() * self.zoom_level)
+
+        # Převeď bod z image coords na canvas coords aby byl uprostřed
+        # Bod v image je (point.x, point.y)
+        # Chceme aby byl na (canvas_width/2, canvas_height/2)
+
+        # Pan offset se kalkuluje takto:
+        # canvas_x = image_x * zoom_level + pan_offset.x()
+        # Chceme: canvas_width/2 = point.x * zoom_level + pan_offset.x()
+        # Takže: pan_offset.x() = canvas_width/2 - point.x * zoom_level
+
+        target_pan_x = canvas_size.width() // 2 - int(point.x * self.zoom_level)
+        target_pan_y = canvas_size.height() // 2 - int(point.y * self.zoom_level)
+
+        self.pan_offset.setX(target_pan_x)
+        self.pan_offset.setY(target_pan_y)
+
+        # Aplikuj smooth bounds clamping
+        self._clamp_pan_offset()
+
+        logger.debug(f"Canvas: focus_on_point {point_id} ({point.x:.1f}, {point.y:.1f}) - pan set to {self.pan_offset}")
+        self.update()
+
     def deselect_point(self):
         """Deselect current point"""
         self.selected_point_id = None
@@ -530,8 +624,10 @@ class ImageCanvasPanel(QWidget):
         self.canvas.set_point_colors(colors_dict)
 
     def _on_point_selected(self, point_id: str):
-        """Canvas vybral bod -> emit signal"""
+        """Canvas vybral bod -> emit signal + auto-focus"""
         self.pointSelected.emit(point_id)
+        # Auto-focus: zoomuj a centruj na bod
+        self.canvas.focus_on_point(point_id)
 
     def _on_point_moved(self, point_id: str, x: float, y: float):
         """Phase 3.4: Canvas pohyboval bodem -> relay signal"""
@@ -540,6 +636,8 @@ class ImageCanvasPanel(QWidget):
     def select_point(self, point_id: str):
         """Highlight bod z external source (např. tabulka)"""
         self.canvas.select_point(point_id)
+        # Auto-focus: zoomuj a centruj na bod
+        self.canvas.focus_on_point(point_id)
 
     def deselect_point(self):
         """Deselect current point"""

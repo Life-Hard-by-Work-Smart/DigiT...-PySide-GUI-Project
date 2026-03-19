@@ -1,4 +1,3 @@
-"""
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                    PLÁN DEVELOPMENT - BRANCH "BODIKY"                         ║
 ║               Points Canvas Integration + Interactive Editing                 ║
@@ -342,4 +341,3 @@ Máme finální plán. Chceš ať spustím s:
 Kontrola: Máš ještě nějakou otázku/změnu PŘED než začnu kódovat?
 
 ═══════════════════════════════════════════════════════════════════════════════
-"""

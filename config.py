@@ -40,10 +40,13 @@ POINT_COLORS_MODEL_2 = {
     'C': QColor(255, 192, 203),       # Pink - Centroid (bylo TL)
 }
 
-POINT_RADIUS = 2                      # Radius in pixels (diameter = 4px)
-POINT_SELECTED_RADIUS = 4             # Selected: radius in pixels (diameter = 8px)
-POINT_CLICK_RADIUS = 5                # Hitbox radius in pixels (10px diameter)
-SHOW_POINT_LABELS = False             # Show TL/TR/BL/BR/C labels on canvas
+POINT_RADIUS = 2                      # Radius in pixels (diameter = 8px)
+POINT_SELECTED_RADIUS = 3             # Selected: radius in pixels (diameter = 12px)
+POINT_CLICK_RADIUS = 4                # Hitbox radius in pixels (14px diameter)
+SHOW_POINT_LABELS = True              # Show TL/TR/BL/BR/C labels on canvas
+
+# Points Panel - Label Display
+USE_ABBREVIATED_LABELS = False        # False = plné labely (top left, bottom right), True = zkratky (TL, BR)
 
 # Canvas - Pan/Zoom Controls
 ZOOM_STEP = 1.1                       # Scroll zoom increment
@@ -53,7 +56,8 @@ ALLOW_POINTS_OUTSIDE_IMAGE = False    # Keep points within image bounds
 # Canvas - Point Editing
 RESTRICT_SELECTION_TO_TABLE = True    # Only table allows point selection (no direct canvas click)
 ARROW_KEY_STEP = 1                    # Pixel per arrow key press
-ARROW_KEY_STEP_SHIFT = 0.33              # Pixel per Shift+arrow key press
+ARROW_KEY_STEP_SHIFT = 0.33           # Pixel per Shift+arrow key press
 
+#FIXME
 # Inference
 INFERENCE_TIMEOUT = 30  # sekund
