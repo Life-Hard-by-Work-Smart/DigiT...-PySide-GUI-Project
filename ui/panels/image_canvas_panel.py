@@ -69,6 +69,15 @@ class PointsOverlay(QWidget):
 
         # Visual
         self.setStyleSheet("background-color: #ffffff;")
+        self.setToolTip(
+            "Kliknutí: vybrat bod\n"
+            "Tah myší: přesunout bod\n"
+            "Mezerník + tah / střední tlačítko: posun (pan)\n"
+            "Kolečko myši: zoom\n"
+            "Šipky: jemný posun bodu (±1 px)\n"
+            "Shift + šipky: velmi jemný posun (±0.33 px)\n"
+            "Esc: zrušit výběr"
+        )
         # DŮLEŽITÉ: Expanduj na dostupný prostor!
         from PySide6.QtWidgets import QSizePolicy
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -658,6 +667,7 @@ class ImageCanvasPanel(QWidget):
                 }
             """)
             self.mask_btn.toggled.connect(self.canvas.set_mask_visible)
+            self.mask_btn.setToolTip("Zobrazit / skrýt barevnou segmentační masku obratlů")
             toolbar.addWidget(self.mask_btn)
             toolbar.addStretch()
             layout.addLayout(toolbar)

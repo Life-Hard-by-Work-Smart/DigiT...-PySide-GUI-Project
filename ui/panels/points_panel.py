@@ -91,6 +91,7 @@ class VertebralPointItem(QFrame):
             indicator.setStyleSheet(
                 f"background-color: {color.name()}; border: 1px solid #999; border-radius: 8px;"
             )
+            indicator.setToolTip(f"Barva bodu {point.label} na canvasu")
             row_layout.addWidget(indicator)
 
             text = f"{display_label}: X: {point.x:.2f} Y: {point.y:.2f}"
@@ -111,6 +112,7 @@ class VertebralPointItem(QFrame):
                 }
             """)
             point_button.setCursor(Qt.PointingHandCursor)
+            point_button.setToolTip(f"Vybrat bod {point.label}\nSouřadnice: ({point.x:.2f}, {point.y:.2f})")
 
             # Store button for later reference
             point_id = point.label  # Use point.label as the identifier
