@@ -62,6 +62,12 @@ RESTRICT_SELECTION_TO_TABLE = True    # Only table allows point selection (no di
 ARROW_KEY_STEP = 1                    # Pixel per arrow key press
 ARROW_KEY_STEP_SHIFT = 0.33           # Pixel per Shift+arrow key press
 
-#FIXME
+# Logging Configuration
+LOGGING_ENABLED = True               # Zapnout/vypnout logování obecně
+LOG_TO_FILE = False                       # Zapisovat logs do souboru (app.log)
+LOG_TO_CONSOLE = True                 # Vypisovat logs do konzole
+LOG_DEBUG_FILE = False                # Zapnout detailní debug.log (True = výstup debug-level detailů)
+LOG_OUTPUT_FILE = False               # Zapnout app_output.log (True = zvláštní soubor pro output)
+
 # Inference
 INFERENCE_TIMEOUT = 30  # sekund
