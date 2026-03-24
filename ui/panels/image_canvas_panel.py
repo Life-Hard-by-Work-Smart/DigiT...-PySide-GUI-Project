@@ -25,7 +25,12 @@ from config import (
     ARROW_KEY_STEP_SHIFT,
     PICTURE_FONT_SIZE,
     ALLOW_POINTS_OUTSIDE_IMAGE,
+    ENABLE_SEGMENTATION_MASK,
 )
+
+if ENABLE_SEGMENTATION_MASK:
+    from config import SEGMENTATION_MASK_COLORS, SEGMENTATION_MASK_ALPHA
+    from core.graphics.segmentation_mask import draw_segmentation_masks
 from logger import logger
 
 
@@ -59,11 +64,29 @@ class PointsOverlay(QWidget):
         # Point colors palette (lze změnit per-model)
         self.point_colors = POINT_COLORS.copy()
 
+        # Segmentation mask state
+        self.vertebral_groups: list = []   # structured list[VertebralPoints] for mask drawing
+        self.mask_visible: bool = False
+
         # Visual
         self.setStyleSheet("background-color: #ffffff;")
+        self.setToolTip(
+            "Kliknutí: vybrat bod\n"
+            "Tah myší: přesunout bod\n"
+            "Mezerník + tah / střední tlačítko: posun (pan)\n"
+            "Kolečko myši: zoom\n"
+            "Šipky: jemný posun bodu (±1 px)\n"
+            "Shift + šipky: velmi jemný posun (±0.33 px)\n"
+            "Esc: zrušit výběr"
+        )
         # DŮLEŽITÉ: Expanduj na dostupný prostor!
         from PySide6.QtWidgets import QSizePolicy
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def set_mask_visible(self, visible: bool) -> None:
+        """Show or hide the segmentation mask overlay"""
+        self.mask_visible = visible
+        self.update()
 
     def sizeHint(self):
         """Vrátí doporučenou velikost - co největší"""
@@ -124,6 +147,7 @@ class PointsOverlay(QWidget):
     def set_vertebral_points(self, vertebral_points_list: list[VertebralPoints]):
         """Nastav seznam vertebrálních bodů k zobrazení"""
         self.vertebral_points.clear()
+        self.vertebral_groups = list(vertebral_points_list)  # store for mask rendering (shared Point refs)
 
         for vertebral in vertebral_points_list:
             for point in vertebral.points:
@@ -240,6 +264,17 @@ class PointsOverlay(QWidget):
                 Qt.SmoothTransformation,
             )
             painter.drawPixmap(self.pan_offset, scaled_image)
+
+        # Nakresli segmentation mask (pod body)
+        if ENABLE_SEGMENTATION_MASK and self.mask_visible and self.vertebral_groups:
+            draw_segmentation_masks(
+                painter,
+                self.vertebral_groups,
+                self.zoom_level,
+                self.pan_offset,
+                SEGMENTATION_MASK_COLORS,
+                SEGMENTATION_MASK_ALPHA,
+            )
 
         # Nakresli body
         for point_id, point in self.vertebral_points.items():
@@ -602,6 +637,41 @@ class ImageCanvasPanel(QWidget):
         self.canvas.pointSelected.connect(self._on_point_selected)
         self.canvas.pointMoved.connect(self._on_point_moved)  # Phase 3.4: Relay pointMoved signal
         layout.addWidget(self.canvas, stretch=1)  # DŮLEŽITÉ: stretch=1 aby se expandoval!
+
+        # Segmentation mask toggle toolbar (only when feature is enabled in config)
+        if ENABLE_SEGMENTATION_MASK:
+            from PySide6.QtWidgets import QPushButton
+            toolbar = QHBoxLayout()
+            toolbar.setContentsMargins(4, 2, 4, 2)
+            toolbar.setSpacing(4)
+
+            self.mask_btn = QPushButton("Maska")
+            self.mask_btn.setCheckable(True)
+            self.mask_btn.setChecked(False)
+            self.mask_btn.setFixedHeight(24)
+            self.mask_btn.setCursor(Qt.PointingHandCursor)
+            self.mask_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e0e0e0;
+                    border: 1px solid #999;
+                    border-radius: 3px;
+                    font-size: 10px;
+                    padding: 2px 8px;
+                }
+                QPushButton:hover:enabled {
+                    background-color: #d0d0d0;
+                }
+                QPushButton:checked {
+                    background-color: #4CAF50;
+                    color: white;
+                    font-weight: bold;
+                }
+            """)
+            self.mask_btn.toggled.connect(self.canvas.set_mask_visible)
+            self.mask_btn.setToolTip("Zobrazit / skrýt barevnou segmentační masku obratlů")
+            toolbar.addWidget(self.mask_btn)
+            toolbar.addStretch()
+            layout.addLayout(toolbar)
 
         # Status bar (placeholder) - SKRYJ aby se canvas zobrazoval na plno
         self.status_label = QLabel("Canvas ready")

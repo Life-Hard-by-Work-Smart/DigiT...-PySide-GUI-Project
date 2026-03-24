@@ -95,6 +95,7 @@ class SessionScreen(QWidget):
             }
         """)
         self.open_file_btn.clicked.connect(self.on_open_file_dialog)
+        self.open_file_btn.setToolTip("Otevřít snímek ze souboru (PNG, JPG, BMP)")
         top_bar.addWidget(self.open_file_btn)
         top_bar.addStretch()
 
@@ -166,6 +167,10 @@ class SessionScreen(QWidget):
             self.menu_buttons[menu_item] = btn
             menu_layout.addWidget(btn)
 
+        self.menu_buttons["Nastavení"].setToolTip("Nastavení snímku a výběr modelu pro inferenci")
+        self.menu_buttons["Body"].setToolTip("Zobrazení a ruční editace detekovaných klíčových bodů\n(dostupné po spuštění inference)")
+        self.menu_buttons["Výsledky"].setToolTip("Přehled klinických metrik\n(dostupné po potvrzení bodů)")
+
         workflow_layout.addLayout(menu_layout)
 
         # ===== STACKED WIDGET PRO OBSAH =====
@@ -214,6 +219,7 @@ class SessionScreen(QWidget):
             }
         """)
         self.delete_image_btn.clicked.connect(self.on_delete_image_clicked)
+        self.delete_image_btn.setToolTip("Odebrat načtený snímek a začít znovu")
         buttons_layout.addWidget(self.delete_image_btn)
 
         self.confirm_image_btn = QPushButton("✓ Potvrdit")
@@ -242,6 +248,7 @@ class SessionScreen(QWidget):
             }
         """)
         self.confirm_image_btn.clicked.connect(self.on_confirm_image_clicked)
+        self.confirm_image_btn.setToolTip("Potvrdit snímek — odemkne výběr modelu a spuštění inference")
         buttons_layout.addWidget(self.confirm_image_btn)
 
         content_layout_1.addLayout(buttons_layout)
@@ -292,6 +299,7 @@ class SessionScreen(QWidget):
             }
         """)
         self.model_combo.currentTextChanged.connect(self.on_model_changed)
+        self.model_combo.setToolTip("Vyberte model pro automatickou segmentaci obratlů a detekci klíčových bodů")
         content_layout_1.addWidget(self.model_combo)
 
         # Spacer
@@ -347,6 +355,7 @@ class SessionScreen(QWidget):
         """)
         # Propoj s metodou pro spuštění inference
         self.inference_button.clicked.connect(self.on_inference_clicked)
+        self.inference_button.setToolTip("Spustit automatickou segmentaci obratlů a detekci klíčových bodů")
 
 
 
@@ -400,6 +409,7 @@ class SessionScreen(QWidget):
             }
         """)
         self.confirm_points_button.clicked.connect(self.on_confirm_points_clicked)
+        self.confirm_points_button.setToolTip("Uzamknout body a přejít k výpočtu klinických metrik\n(body již nepůjde editovat)")
         content_layout_2_main.addWidget(self.confirm_points_button)
 
         self.stacked_widget.addWidget(content_frame_2)
@@ -417,6 +427,7 @@ class SessionScreen(QWidget):
         content_layout_3.addWidget(content_label_3)
         # export metrics button - uložení jako self.export_metrics_button pro pozdější použití
         self.export_metrics_button = QPushButton("Exportovat")
+        self.export_metrics_button.setToolTip("Exportovat klinické metriky do souboru")
         self.export_metrics_button.setFixedHeight(40)
         self.export_metrics_button.setCursor(Qt.PointingHandCursor)
         self.export_metrics_button.setStyleSheet("""
@@ -575,6 +586,11 @@ class SessionScreen(QWidget):
         if not self.image_confirmed or not self.current_image_path:
             logger.warning(f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí")
             return
+
+        import config
+        if config.PRESENTATION_MODE and self.model_combo.currentText() == "model 2":
+            from core.presentation.segmentation_demo import SegmentationDemoDialog
+            SegmentationDemoDialog(self).exec()
 
         try:
             # Inicializuj ML model pokud neexistuje
