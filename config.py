@@ -40,6 +40,7 @@ POINT_COLORS_MODEL_2 = {
     "C": QColor(255, 192, 203),  # Pink - Centroid (bylo TL)
 }
 
+
 POINT_RADIUS = 4  # Radius in pixels (diameter = 8px)
 POINT_SELECTED_RADIUS = 6  # Selected: radius in pixels (diameter = 12px)
 POINT_CLICK_RADIUS = 7  # Hitbox radius in pixels (14px diameter)
@@ -61,10 +62,18 @@ SEGMENTATION_MASK_COLORS = [
     QColor(180, 80, 255),  # Purple   – T2
 ]
 
+POINT_RADIUS = 3                      # Radius in pixels (diameter = 8px)
+POINT_SELECTED_RADIUS = 4             # Selected: radius in pixels (diameter = 12px)
+POINT_CLICK_RADIUS = 5                # Hitbox radius in pixels (14px diameter)
+SHOW_POINT_LABELS = True              # Show TL/TR/BL/BR/C labels on canvas
+PICTURE_FONT_SIZE = 10
+
 # Points Panel - Label Display
 USE_ABBREVIATED_LABELS = (
     False  # False = plné labely (top left, bottom right), True = zkratky (TL, BR)
 )
+
+
 
 # Canvas - Pan/Zoom Controls
 ZOOM_STEP = 1.1  # Scroll zoom increment
@@ -78,7 +87,14 @@ RESTRICT_SELECTION_TO_TABLE = (
 ARROW_KEY_STEP = 1  # Pixel per arrow key press
 ARROW_KEY_STEP_SHIFT = 0.33  # Pixel per Shift+arrow key press
 
-# FIXME
+
+# Logging Configuration
+LOGGING_ENABLED = True               # Zapnout/vypnout logování obecně
+LOG_TO_FILE = False                       # Zapisovat logs do souboru (app.log)
+LOG_TO_CONSOLE = True                 # Vypisovat logs do konzole
+LOG_DEBUG_FILE = False                # Zapnout detailní debug.log (True = výstup debug-level detailů)
+LOG_OUTPUT_FILE = False               # Zapnout app_output.log (True = zvláštní soubor pro output)
+
 # Inference
 INFERENCE_TIMEOUT = 30  # sekund
 
