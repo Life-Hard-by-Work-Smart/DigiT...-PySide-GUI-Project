@@ -577,6 +577,11 @@ class SessionScreen(QWidget):
             logger.warning(f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí")
             return
 
+        import config
+        if config.PRESENTATION_MODE and self.model_combo.currentText() == "model 2":
+            from core.presentation.segmentation_demo import SegmentationDemoDialog
+            SegmentationDemoDialog(self).exec()
+
         try:
             # Inicializuj ML model pokud neexistuje
             if self.ml_inference is None:

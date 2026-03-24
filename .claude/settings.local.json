@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'c:/Users/Robert Seaborn/Documents/GitHub/DigiT...-PySide-GUI-Project' -name requirements*.txt -o -name pyproject.toml)",
+      "Read(//c/Users/Robert Seaborn/**)",
+      "Bash(find 'c:/Users/Robert Seaborn' -maxdepth 5 -name *.pdf)"
+    ]
+  }
+}
