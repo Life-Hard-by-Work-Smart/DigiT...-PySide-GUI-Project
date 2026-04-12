@@ -205,9 +205,14 @@ class AtlasUNetModel(BaseMLInference):
 
             if return_keypoints:
                 # Extract keypoints from colored mask
+                image_height, image_width = image_np.shape[:2]
+                image_name = Path(image_path).stem if image_path else "image"
+
                 keypoints_labelme = extract_keypoints_from_mask(
                     mask_relabeled,
-                    image_np
+                    image_name,
+                    image_width,
+                    image_height
                 )
 
                 # Convert to VertebralPoints format
