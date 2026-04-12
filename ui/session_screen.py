@@ -50,7 +50,7 @@ class SessionScreen(QWidget):
         self.worker_manager = WorkerManager()  # Thread-safe worker for async inference
 
         # IMPORTANT: Uložiště výsledků inference per-model
-        # Format: {"model 1": vertebral_results_list, "model 2": vertebral_results_list, ...}
+        # Format: {"preview": vertebral_results_list, "atlas_unet": vertebral_results_list, ...}
         self.inference_results_by_model = {}
 
         layout = QHBoxLayout(self)
@@ -279,8 +279,8 @@ class SessionScreen(QWidget):
         content_layout_1.addWidget(model_label)
 
         self.model_combo = QComboBox()
-        self.model_combo.addItems(["model 1", "model 2"])
-        self.model_combo.setCurrentIndex(0)  # Default na model 1
+        self.model_combo.addItems(["preview", "atlas_unet"])
+        self.model_combo.setCurrentIndex(0)  # Default na preview
         self.model_combo.setFixedHeight(32)
         self.model_combo.setFixedWidth(150)
         self.model_combo.setEnabled(False)  # Disabled dokud se nepotvrdí snímek
@@ -604,14 +604,14 @@ class SessionScreen(QWidget):
             return
 
         import config
-        if config.PRESENTATION_MODE and self.model_combo.currentText() == "model 2":
+        if config.PRESENTATION_MODE and self.model_combo.currentText() == "atlas_unet":
             from core.presentation.segmentation_demo import SegmentationDemoDialog
             SegmentationDemoDialog(self).exec()
             return
 
         try:
             # Get model name from combo
-            model_name = 'preview'  # Default - můžeš Later mapovat z combobox
+            model_name = self.model_combo.currentText()  # 'preview' nebo 'atlas_unet'
 
             # Disable button - inference běží
             self.inference_button.setText("⟳ 0%")
@@ -697,7 +697,7 @@ class SessionScreen(QWidget):
                 self.canvas_panel.set_vertebral_points(vertebral_results)
 
                 # IMPORTANT: Nastav barvy podle modelu
-                if current_model == "model 2":
+                if current_model == "atlas_unet":
                     self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
                 else:
                     self.canvas_panel.set_point_colors(POINT_COLORS)
@@ -802,9 +802,9 @@ class SessionScreen(QWidget):
         logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
 
         # Zobraz/skryj parametry box podle modelu
-        is_model_2 = (model_name == "model 2")
-        self.params_label.setVisible(is_model_2)
-        self.params_box.setVisible(is_model_2)
+        is_atlas = (model_name == "atlas_unet")
+        self.params_label.setVisible(is_atlas)
+        self.params_box.setVisible(is_atlas)
 
         # IMPORTANT: Pokud máme uložené výsledky pro tento model, zobraz je!
         if model_name in self.inference_results_by_model:
@@ -817,7 +817,7 @@ class SessionScreen(QWidget):
                 self.canvas_panel.set_vertebral_points(vertebral_results)
 
                 # IMPORTANT: Nastav barvy podle modelu
-                if model_name == "model 2":
+                if model_name == "atlas_unet":
                     self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
                 else:
                     self.canvas_panel.set_point_colors(POINT_COLORS)
@@ -891,9 +891,11 @@ class SessionScreen(QWidget):
         # Unload model z memory
         try:
             manager = ModelManager.get_instance()
-            manager.unload_model('preview', self.session_name)
-            logger.info(f"[Session {self.session_name}] Model unloaded from memory")
+            # Unload both preview and atlas_unet if they were loaded
+            for model_name in ['preview', 'atlas_unet']:
+                manager.unload_model(model_name, self.session_name)
+            logger.info(f"[Session {self.session_name}] Models unloaded from memory")
         except Exception as e:
-            logger.warning(f"[Session {self.session_name}] Error unloading model: {e}")
+            logger.warning(f"[Session {self.session_name}] Error unloading models: {e}")
 
         event.accept()
