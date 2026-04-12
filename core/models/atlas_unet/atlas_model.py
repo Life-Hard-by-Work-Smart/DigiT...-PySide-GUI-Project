@@ -80,9 +80,10 @@ class AtlasUNetModel(BaseMLInference):
             image = PILImage.open(image_path).convert('L')  # Grayscale
             image_np = np.array(image)
 
-            # Run inference
+            # Run inference - pass both image_np and image_path for processing
             result = self.infer({
                 'image': image_np,
+                'image_path': image_path,
                 'return_mask': False,
                 'return_keypoints': True,
                 'return_visualization': False
@@ -160,6 +161,7 @@ class AtlasUNetModel(BaseMLInference):
 
             # Parsuj input
             image = input_data.get('image')
+            image_path = input_data.get('image_path')  # Get image path if provided
             return_mask = input_data.get('return_mask', True)
             return_keypoints = input_data.get('return_keypoints', True)
             return_visualization = input_data.get('return_visualization', False)
@@ -180,13 +182,16 @@ class AtlasUNetModel(BaseMLInference):
 
             logger.debug(f"Running inference on image shape: {image_np.shape}")
 
-            # Run inference
-            mask_7class = run_inference_on_image(
-                image_np,
-                self.model,
-                self.transform,
-                device=self.device
-            )
+            # Run inference - use provided image_path for loading
+            if image_path:
+                mask_7class, overlay_img = run_inference_on_image(
+                    model=self.model,
+                    img_path=image_path,
+                    device=self.device,
+                    transform=self.transform
+                )
+            else:
+                raise ValueError("image_path required for inference")
 
             # Postprocessing
             mask_cleaned = postprocess_mask(mask_7class)
