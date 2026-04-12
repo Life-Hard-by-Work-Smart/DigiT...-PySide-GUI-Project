@@ -82,8 +82,13 @@ class ModelRegistry:
         Raises:
             ValueError: Pokud model neexistuje nebo je disabled
         """
+        logger.info(f"[Registry.get_model_class] Looking for model '{model_name}'")
+        logger.info(f"[Registry.get_model_class] _models content: {list(cls._models.keys())}")
+        logger.info(f"[Registry.get_model_class] _models details: {cls._models}")
+
         if model_name not in cls._models:
             available = cls.list_models()
+            logger.error(f"[Registry] Model '{model_name}' NOT FOUND in cls._models. Available: {available}")
             raise ValueError(
                 f"Model '{model_name}' not found. Available: {available}"
             )

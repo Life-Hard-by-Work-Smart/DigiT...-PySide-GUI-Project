@@ -21,6 +21,8 @@ class MLInferenceSimulator(BaseMLInference):
 
     def __init__(self):
         """Inicializuj ML simulátor - automaticky najde testovací data"""
+        super().__init__(model_name="preview")
+
         self.test_image_path = TEST_IMAGE_PATH
         self.expected_results_path = TEST_RESULTS_PATH
         self.test_image_hash = None
