@@ -195,7 +195,7 @@ class AtlasUNetModel(BaseMLInference):
 
             # Postprocessing
             mask_cleaned = postprocess_mask(mask_7class)
-            mask_relabeled = relabel_by_vertical_position(mask_cleaned, image_np)
+            mask_relabeled = relabel_by_vertical_position(mask_cleaned)  # No need to pass image_np
 
             # Build result
             result = {'status': 'success'}
