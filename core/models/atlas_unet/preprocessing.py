@@ -24,17 +24,7 @@ from monai.transforms import Compose, ScaleIntensityd, SpatialPadd, ToTensord
 from scipy.ndimage import binary_opening, binary_closing, binary_fill_holes
 from skimage.measure import label, regionprops
 
-from core.models.atlas_unet.config import (
-    NUM_CLASSES,
-    IN_CHANNELS,
-    SPATIAL_DIMS,
-    CHANNELS,
-    STRIDES,
-    NUM_RES_UNITS,
-    SLIDING_WINDOW_SIZE,
-    CONF_THRESH_DEFAULT,
-    CLASS_COLORS_BGR
-)
+from core.models.atlas_unet import config
 from core.models.utils.image_utils import HistogramEqualizationd
 
 from logger import logger
@@ -47,17 +37,17 @@ from logger import logger
 def build_model(num_classes: int = None, in_channels: int = None) -> torch.nn.Module:
     """Build UNet model architecture"""
     if num_classes is None:
-        num_classes = NUM_CLASSES
+        num_classes = config.NUM_CLASSES
     if in_channels is None:
-        in_channels = IN_CHANNELS
+        in_channels = config.IN_CHANNELS
 
     return UNet(
-        spatial_dims=SPATIAL_DIMS,
+        spatial_dims=config.SPATIAL_DIMS,
         in_channels=in_channels,
         out_channels=num_classes,
-        channels=CHANNELS,
-        strides=STRIDES,
-        num_res_units=NUM_RES_UNITS,
+        channels=config.CHANNELS,
+        strides=config.STRIDES,
+        num_res_units=config.NUM_RES_UNITS,
     )
 
 
@@ -91,7 +81,7 @@ def load_trained_model(model_path: str, device: torch.device) -> torch.nn.Module
 def get_inference_transform(roi_size=None):
     """Get MONAI transform pipeline for inference"""
     if roi_size is None:
-        roi_size = SLIDING_WINDOW_SIZE
+        roi_size = config.SLIDING_WINDOW_SIZE
 
     return Compose([
         HistogramEqualizationd(keys=["image"]),
@@ -137,7 +127,7 @@ def clean_class(mask_cls: np.ndarray, min_size: int = 500) -> np.ndarray:
 def postprocess_mask(pred_mask: np.ndarray, num_classes: int = None, min_size: int = 500) -> np.ndarray:
     """Postprocess prediction mask: clean each class separately"""
     if num_classes is None:
-        num_classes = NUM_CLASSES
+        num_classes = config.NUM_CLASSES
 
     h, w = pred_mask.shape
     cleaned = np.zeros((h, w), dtype=np.uint8)
@@ -204,9 +194,9 @@ def run_inference_on_image(
         (cleaned_mask, overlay_base_image)
     """
     if roi_size is None:
-        roi_size = SLIDING_WINDOW_SIZE
+        roi_size = config.SLIDING_WINDOW_SIZE
     if conf_thresh is None:
-        conf_thresh = CONF_THRESH_DEFAULT
+        conf_thresh = config.CONF_THRESH_DEFAULT
 
     logger.debug(f"[Atlas] Loading image: {img_path}")
 
@@ -244,7 +234,7 @@ def run_inference_on_image(
     pred_mask[max_prob_np < conf_thresh] = 0
 
     logger.debug(f"[Atlas] Postprocessing mask")
-    cleaned_mask = postprocess_mask(pred_mask, num_classes=NUM_CLASSES, min_size=min_size)
+    cleaned_mask = postprocess_mask(pred_mask, num_classes=config.NUM_CLASSES, min_size=min_size)
     if apply_relabel:
         cleaned_mask = relabel_by_vertical_position(cleaned_mask)
 
@@ -267,7 +257,7 @@ def run_inference_on_image(
 def mask_to_color_bgr(mask: np.ndarray, colors_bgr: dict = None) -> np.ndarray:
     """Convert class mask to colored BGR image"""
     if colors_bgr is None:
-        colors_bgr = CLASS_COLORS_BGR
+        colors_bgr = config.CLASS_COLORS_BGR
 
     h, w = mask.shape
     colored = np.zeros((h, w, 3), dtype=np.uint8)
