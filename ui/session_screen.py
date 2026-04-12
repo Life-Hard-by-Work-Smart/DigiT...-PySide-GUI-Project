@@ -607,7 +607,7 @@ class SessionScreen(QWidget):
         if config.PRESENTATION_MODE and self.model_combo.currentText() == "preview":
             from core.presentation.segmentation_demo import SegmentationDemoDialog
             SegmentationDemoDialog(self).exec()
-            return
+            # Pokračuj dál - po dialogu spusť inference!
 
         try:
             # Get model name from combo
