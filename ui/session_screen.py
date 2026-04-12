@@ -313,7 +313,7 @@ class SessionScreen(QWidget):
         # Spacer
         content_layout_1.addSpacing(10)
 
-        # Parameters box - viditelný jen pro model 2
+        # Parameters box - viditelný jen pro preview model
         self.params_label = QLabel("Nastavení parametrů:")
         self.params_label.setStyleSheet("color: #333; font-size: 11px; font-weight: bold;")
         self.params_label.setVisible(False)
@@ -324,7 +324,7 @@ class SessionScreen(QWidget):
         self.params_box.setMinimumHeight(80)
         params_box_layout = QVBoxLayout(self.params_box)
         params_box_layout.setContentsMargins(8, 8, 8, 8)
-        params_placeholder = QLabel("Zde budou parametry pro model 2")
+        params_placeholder = QLabel("Zde budou parametry pro preview model")
         params_placeholder.setAlignment(Qt.AlignCenter)
         params_placeholder.setStyleSheet("color: #999; font-size: 10px;")
         params_box_layout.addWidget(params_placeholder)
@@ -604,7 +604,7 @@ class SessionScreen(QWidget):
             return
 
         import config
-        if config.PRESENTATION_MODE and self.model_combo.currentText() == "atlas_unet":
+        if config.PRESENTATION_MODE and self.model_combo.currentText() == "preview":
             from core.presentation.segmentation_demo import SegmentationDemoDialog
             SegmentationDemoDialog(self).exec()
             return
@@ -696,8 +696,8 @@ class SessionScreen(QWidget):
                 self.canvas_panel.set_image(self.current_pixmap)
                 self.canvas_panel.set_vertebral_points(vertebral_results)
 
-                # IMPORTANT: Nastav barvy podle modelu
-                if current_model == "atlas_unet":
+                # IMPORTANT: Nastav barvy podle modelu (preview = model 2 barvy)
+                if current_model == "preview":
                     self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
                 else:
                     self.canvas_panel.set_point_colors(POINT_COLORS)
@@ -801,10 +801,10 @@ class SessionScreen(QWidget):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
         logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
 
-        # Zobraz/skryj parametry box podle modelu
-        is_atlas = (model_name == "atlas_unet")
-        self.params_label.setVisible(is_atlas)
-        self.params_box.setVisible(is_atlas)
+        # Zobraz/skryj parametry box podle modelu (preview = extended model s parametry)
+        is_preview = (model_name == "preview")
+        self.params_label.setVisible(is_preview)
+        self.params_box.setVisible(is_preview)
 
         # IMPORTANT: Pokud máme uložené výsledky pro tento model, zobraz je!
         if model_name in self.inference_results_by_model:
@@ -816,8 +816,8 @@ class SessionScreen(QWidget):
                 self.canvas_panel.set_image(self.current_pixmap)
                 self.canvas_panel.set_vertebral_points(vertebral_results)
 
-                # IMPORTANT: Nastav barvy podle modelu
-                if model_name == "atlas_unet":
+                # IMPORTANT: Nastav barvy podle modelu (preview = model 2 barvy)
+                if model_name == "preview":
                     self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
                 else:
                     self.canvas_panel.set_point_colors(POINT_COLORS)
