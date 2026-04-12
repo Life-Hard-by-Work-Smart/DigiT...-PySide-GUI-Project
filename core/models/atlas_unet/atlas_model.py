@@ -221,11 +221,9 @@ class AtlasUNetModel(BaseMLInference):
                     image_height
                 )
 
-                # Convert to VertebralPoints format
-                result['keypoints'] = self._convert_labelme_to_vertebral_points(
-                    keypoints_labelme,
-                    image_np.shape
-                )
+                # Return LabelMe JSON format (same as preview model)
+                # UI will parse this with InferenceOutputHandler.parse_inference_output()
+                result['shapes'] = keypoints_labelme.get('shapes', [])
 
             if return_visualization:
                 result['visualization'] = self._visualize_result(
