@@ -667,7 +667,11 @@ class SessionScreen(QWidget):
             data: {"status": "success", "result": {...}} nebo {"status": "error", "error": "msg"}
         """
         if data.get('status') != 'success':
+            error_msg = data.get('error', 'Unknown error')
             logger.error(f"[Session {self.session_name}] Inference result status: {data.get('status')}")
+            logger.error(f"[Session {self.session_name}] Error message: {error_msg}")
+            # Call error handler to show dialog to user
+            self._on_inference_error(error_msg)
             return
 
         try:

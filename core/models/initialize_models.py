@@ -47,7 +47,7 @@ def initialize_models() -> None:
         ModelRegistry.register(
             model_name='atlas_unet',
             model_class=AtlasUNetModel,
-            config={'device': 'cuda'},  # Přepni na 'cpu' pokud nemáš GPU
+            config={'device': 'cpu'},  # CPU inference (no CUDA available on this system)
             enabled=True
         )
         logger.info("✓ Atlas UNet model registered")
