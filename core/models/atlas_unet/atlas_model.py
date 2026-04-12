@@ -204,12 +204,18 @@ class AtlasUNetModel(BaseMLInference):
                 result['mask'] = mask_relabeled
 
             if return_keypoints:
-                # Extract keypoints from colored mask
+                # Convert 2D labeled mask to 3D BGR color mask for keypoint extraction
+                from core.models.atlas_unet import config
+                
                 image_height, image_width = image_np.shape[:2]
                 image_name = Path(image_path).stem if image_path else "image"
+                
+                mask_bgr = np.zeros((image_height, image_width, 3), dtype=np.uint8)
+                for class_id, color in config.CLASS_COLORS_BGR.items():
+                    mask_bgr[mask_relabeled == class_id] = color
 
                 keypoints_labelme = extract_keypoints_from_mask(
-                    mask_relabeled,
+                    mask_bgr,
                     image_name,
                     image_width,
                     image_height
