@@ -206,10 +206,10 @@ class AtlasUNetModel(BaseMLInference):
             if return_keypoints:
                 # Convert 2D labeled mask to 3D BGR color mask for keypoint extraction
                 from core.models.atlas_unet import config
-                
+
                 image_height, image_width = image_np.shape[:2]
                 image_name = Path(image_path).stem if image_path else "image"
-                
+
                 mask_bgr = np.zeros((image_height, image_width, 3), dtype=np.uint8)
                 for class_id, color in config.CLASS_COLORS_BGR.items():
                     mask_bgr[mask_relabeled == class_id] = color
@@ -279,14 +279,14 @@ class AtlasUNetModel(BaseMLInference):
         """
         Convert LabelMe JSON format to VertebralPoints
 
-        LabelMe format:
+        LabelMe format from extract_keypoints_from_mask returns individual point shapes:
             {
                 'shapes': [
-                    {
-                        'label': 'C2',
-                        'points': [[x1,y1], [x2,y2], [x3,y3], [x4,y4]],
-                        ...
-                    },
+                    {'label': 'C2 top left', 'points': [[x1,y1]], ...},
+                    {'label': 'C2 top right', 'points': [[x2,y2]], ...},
+                    {'label': 'C2 bottom left', 'points': [[x3,y3]], ...},
+                    {'label': 'C2 bottom right', 'points': [[x4,y4]], ...},
+                    {'label': 'C2 centroid', 'points': [[x5,y5]], ...},
                     ...
                 ]
             }
@@ -300,28 +300,67 @@ class AtlasUNetModel(BaseMLInference):
         """
         result = {}
 
-        # Map label to vertebra number
+        # Map vertebra label to number
         label_to_num = {
             'C2': 2, 'C3': 3, 'C4': 4, 'C5': 5, 'C6': 6, 'C7': 7
         }
 
+        # Collect points by vertebra
+        vertebra_points_map = {}  # {2: {'top_left': Point(...), ...}}
+
         for shape in labelme_json.get('shapes', []):
-            label = shape.get('label', '')
+            label = shape.get('label', '').strip()
             points = shape.get('points', [])
 
-            if label not in label_to_num or len(points) < 5:
+            if not points or not label:
                 continue
 
-            vertebra_num = label_to_num[label]
+            # Parse label like "C2 top left" -> vertebra_name="C2", point_name="top left"
+            parts = label.rsplit(' ', 2)  # Split from right to handle multi-word point names
+            if len(parts) < 2:
+                continue
 
-            # Points: [top_left, top_right, bottom_right, bottom_left, centroid]
-            vertebral_points = VertebralPoints(
-                top_left=Point(x=points[0][0], y=points[0][1]),
-                top_right=Point(x=points[1][0], y=points[1][1]),
-                bottom_right=Point(x=points[2][0], y=points[2][1]),
-                bottom_left=Point(x=points[3][0], y=points[3][1]),
-                centroid=Point(x=points[4][0], y=points[4][1])
-            )
+            vertebra_name = parts[0]
+            point_name = ' '.join(parts[1:])
+
+            if vertebra_name not in label_to_num:
+                continue
+
+            vertebra_num = label_to_num[vertebra_name]
+            point_coord = points[0]  # First (and only) point in this shape
+
+            if vertebra_num not in vertebra_points_map:
+                vertebra_points_map[vertebra_num] = {}
+
+            vertebra_points_map[vertebra_num][point_name] = Point(x=point_coord[0], y=point_coord[1])
+
+        # Build VertebralPoints for each vertebra that has all 5 required points
+        required_points = {'top left', 'top right', 'bottom left', 'bottom right', 'centroid'}
+
+        for vertebra_num, points_dict in vertebra_points_map.items():
+            # For C2, we need 3 points: bottom left, bottom right, centroid
+            if vertebra_num == 2:
+                c2_required = {'bottom left', 'bottom right', 'centroid'}
+                if not c2_required.issubset(set(points_dict.keys())):
+                    continue
+                vertebral_points = VertebralPoints(
+                    top_left=points_dict.get('bottom left'),  # Use bottom_left as top_left for C2
+                    top_right=points_dict.get('bottom right'),  # Use bottom_right as top_right for C2
+                    bottom_right=points_dict.get('centroid'),  # Use centroid as bottom_right for C2
+                    bottom_left=points_dict.get('bottom left'),  # Use bottom_left as is
+                    centroid=points_dict.get('centroid')
+                )
+            else:
+                # For C3-C7, we need all 5 points
+                if not required_points.issubset(set(points_dict.keys())):
+                    continue
+                vertebral_points = VertebralPoints(
+                    top_left=points_dict['top left'],
+                    top_right=points_dict['top right'],
+                    bottom_right=points_dict['bottom right'],
+                    bottom_left=points_dict['bottom left'],
+                    centroid=points_dict['centroid']
+                )
 
             result[vertebra_num] = vertebral_points
 
