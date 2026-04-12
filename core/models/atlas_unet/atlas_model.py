@@ -222,8 +222,9 @@ class AtlasUNetModel(BaseMLInference):
                 )
 
                 # Return LabelMe JSON format (same as preview model)
-                # UI will parse this with InferenceOutputHandler.parse_inference_output()
-                result['shapes'] = keypoints_labelme.get('shapes', [])
+                # keypoints_labelme already has the full structure with 'shapes', 'version', etc.
+                # Update result with shapes from LabelMe JSON
+                result.update(keypoints_labelme)
 
             if return_visualization:
                 result['visualization'] = self._visualize_result(
