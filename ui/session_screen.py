@@ -681,6 +681,11 @@ class SessionScreen(QWidget):
                 logger.warning(f"[Session {self.session_name}] Inference returned empty result")
                 return
 
+            logger.debug(f"[Session {self.session_name}] Result keys: {result.keys() if isinstance(result, dict) else 'NOT A DICT'}")
+            logger.debug(f"[Session {self.session_name}] Result has 'shapes': {'shapes' in result if isinstance(result, dict) else 'N/A'}")
+            if isinstance(result, dict) and 'shapes' in result:
+                logger.debug(f"[Session {self.session_name}] Shapes count: {len(result['shapes'])}")
+
             # Zpracuj JSON výstup na VertebralPoints pro UI
             vertebral_results = self.io_handler.parse_inference_output(result)
 

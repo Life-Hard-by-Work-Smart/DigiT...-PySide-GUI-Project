@@ -93,35 +93,17 @@ class AtlasUNetModel(BaseMLInference):
                 logger.error(f"Inference failed: {result.get('error')}")
                 return None
 
-            # Convert to LabelMe JSON format for compatibility
-            keypoints = result.get('keypoints', {})
-
+            # Extract LabelMe JSON fields from result
+            # infer() already returns 'shapes', 'version', 'flags', etc.
             labelme_json = {
-                'version': '5.2.1',
-                'flags': {},
-                'shapes': []
+                'version': result.get('version', '5.2.1'),
+                'flags': result.get('flags', {}),
+                'shapes': result.get('shapes', []),
+                'imagePath': result.get('imagePath', ''),
+                'imageData': result.get('imageData', ''),
+                'imageHeight': result.get('imageHeight', 0),
+                'imageWidth': result.get('imageWidth', 0),
             }
-
-            # Convert keypoints to LabelMe shapes
-            for vertebra_num, vpoints in keypoints.items():
-                vertebra_label = f'C{vertebra_num}'
-
-                points_list = [
-                    [vpoints.top_left.x, vpoints.top_left.y],
-                    [vpoints.top_right.x, vpoints.top_right.y],
-                    [vpoints.bottom_right.x, vpoints.bottom_right.y],
-                    [vpoints.bottom_left.x, vpoints.bottom_left.y],
-                    [vpoints.centroid.x, vpoints.centroid.y],
-                ]
-
-                labelme_json['shapes'].append({
-                    'label': vertebra_label,
-                    'points': points_list,
-                    'group_id': None,
-                    'description': '',
-                    'shape_type': 'polygon',
-                    'flags': {}
-                })
 
             return labelme_json
 
@@ -222,9 +204,10 @@ class AtlasUNetModel(BaseMLInference):
                 )
 
                 # Return LabelMe JSON format (same as preview model)
-                # keypoints_labelme already has the full structure with 'shapes', 'version', etc.
-                # Update result with shapes from LabelMe JSON
-                result.update(keypoints_labelme)
+                # Copy just the shapes, version, and other LabelMe fields
+                for key in ['version', 'flags', 'shapes', 'imagePath', 'imageData', 'imageHeight', 'imageWidth']:
+                    if key in keypoints_labelme:
+                        result[key] = keypoints_labelme[key]
 
             if return_visualization:
                 result['visualization'] = self._visualize_result(

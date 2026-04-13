@@ -82,8 +82,14 @@ class InferenceWorker(QObject):
             self.progressUpdate.emit(10)  # Loading model...
 
             # Get model (lazy-loads if needed)
-            logger.debug(f"Loading model '{self.model_name}'...")
+            logger.info(f"[Worker] About to load model '{self.model_name}' in worker thread...")
+            logger.debug(f"[Worker] Manager instance: {self.manager}")
+            from core.models.registry import ModelRegistry
+            logger.debug(f"[Worker] Registry models before get_model: {list(ModelRegistry._models.keys())}")
+
             model = self.manager.get_model(self.model_name, self.session_id)
+
+            logger.info(f"[Worker] Model '{self.model_name}' loaded successfully")
 
             self.progressUpdate.emit(30)  # Model loaded, running inference...
 

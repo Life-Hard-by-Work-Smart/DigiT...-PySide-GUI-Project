@@ -38,6 +38,8 @@ class ModelManager:
 
     _instance: Optional['ModelManager'] = None
     _lock: Lock = Lock()
+    _instances: Dict[str, Dict[str, BaseMLInference]] = {}  # CLASS LEVEL - SHARED!
+    _initialized: bool = False  # CLASS LEVEL!
 
     def __new__(cls):
         """Singleton pattern"""
@@ -50,16 +52,9 @@ class ModelManager:
         return cls._instance
 
     def __init__(self):
-        """Initialize manager"""
-        if self._initialized:
-            return
-
-        # {model_name: {session_id: model_instance}}
-        self._instances: Dict[str, Dict[str, BaseMLInference]] = {}
-        self._lock = Lock()
-        self._initialized = True
-
-        logger.info("✓ ModelManager initialized (lazy-loading)")
+        """Initialize manager - NE, vše je class-level"""
+        # Nic se neděje - vše je inicializované na class-level
+        pass
 
     @classmethod
     def get_instance(cls) -> 'ModelManager':
