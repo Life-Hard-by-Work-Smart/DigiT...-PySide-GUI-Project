@@ -107,5 +107,30 @@ Seznam funkcí dle Development roadmapy:
 
 ---
 
+## 🔗 Dokumentace & Plánování
+
+- **[UNET_MODEL_STRUCTURE.md](UNET_MODEL_STRUCTURE.md)** – Detailní architektura ML modelu, data flow, a integační roadmap
+- **[plán_integrace_ml.md](plán_integrace_ml.md)** – **⭐ ESSENTIAL** Kompletní implementační plán pro ML integraci (threading, registry, multi-session support)
+
+---
+
+## 🚀 Development Roadmap
+
+### Phase 4 (Current - ML Integration)
+
+- [ ] Threading infrastructure (QThread workers)
+- [ ] Model registry system
+- [ ] Per-model configuration & folder structure
+- [ ] Atlas UNet integration
+- [ ] Multi-session parallel inference
+
+### Phase 5 (Planned - Metrics)
+
+- Real-time metric calculation
+- Statistical analysis
+- Export functionality
+
+---
+
 Vytvořeno od: *Life-Hard-by-Work-Smart* & *GitHub Copilot*.
-Aktuální focus branch: `experimental`.
+Aktuální focus branch: `ML-integration`.

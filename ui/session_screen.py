@@ -8,7 +8,9 @@
     QStackedWidget,
     QFileDialog,
     QScrollArea,
-    QComboBox
+    QComboBox,
+    QMessageBox,
+    QProgressBar
 )
 
 from PySide6.QtCore import Qt, Signal
@@ -19,6 +21,9 @@ from ui.panels.drag_drop_frame import DragDropFrame
 from ui.panels.points_panel import VertebralPointsPanel
 from ui.panels.image_canvas_panel import ImageCanvasPanel
 from core.models import MLInferenceSimulator
+from core.models.model_manager import ModelManager
+from core.models.registry import ModelRegistry
+from core.workers.inference_worker import WorkerManager
 from core.io import InferenceOutputHandler
 from config import POINT_COLORS, POINT_COLORS_MODEL_2
 from logger import logger
@@ -38,11 +43,14 @@ class SessionScreen(QWidget):
 
         # Inference setup
         self.current_image_path = None
-        self.ml_inference = None  # ML model simulator
+        self.ml_inference = None  # ML model simulator (deprecated - use WorkerManager now)
         self.io_handler = InferenceOutputHandler()  # Handler pro zpracování výstupu
 
+        # Phase 4: Async inference with WorkerManager
+        self.worker_manager = WorkerManager()  # Thread-safe worker for async inference
+
         # IMPORTANT: Uložiště výsledků inference per-model
-        # Format: {"model 1": vertebral_results_list, "model 2": vertebral_results_list, ...}
+        # Format: {"preview": vertebral_results_list, "atlas_unet": vertebral_results_list, ...}
         self.inference_results_by_model = {}
 
         layout = QHBoxLayout(self)
@@ -271,8 +279,8 @@ class SessionScreen(QWidget):
         content_layout_1.addWidget(model_label)
 
         self.model_combo = QComboBox()
-        self.model_combo.addItems(["model 1", "model 2"])
-        self.model_combo.setCurrentIndex(0)  # Default na model 1
+        self.model_combo.addItems(["preview", "atlas_unet"])
+        self.model_combo.setCurrentIndex(0)  # Default na preview
         self.model_combo.setFixedHeight(32)
         self.model_combo.setFixedWidth(150)
         self.model_combo.setEnabled(False)  # Disabled dokud se nepotvrdí snímek
@@ -305,7 +313,7 @@ class SessionScreen(QWidget):
         # Spacer
         content_layout_1.addSpacing(10)
 
-        # Parameters box - viditelný jen pro model 2
+        # Parameters box - viditelný jen pro preview model
         self.params_label = QLabel("Nastavení parametrů:")
         self.params_label.setStyleSheet("color: #333; font-size: 11px; font-weight: bold;")
         self.params_label.setVisible(False)
@@ -316,7 +324,7 @@ class SessionScreen(QWidget):
         self.params_box.setMinimumHeight(80)
         params_box_layout = QVBoxLayout(self.params_box)
         params_box_layout.setContentsMargins(8, 8, 8, 8)
-        params_placeholder = QLabel("Zde budou parametry pro model 2")
+        params_placeholder = QLabel("Zde budou parametry pro preview model")
         params_placeholder.setAlignment(Qt.AlignCenter)
         params_placeholder.setStyleSheet("color: #999; font-size: 10px;")
         params_box_layout.addWidget(params_placeholder)
@@ -582,60 +590,136 @@ class SessionScreen(QWidget):
         self.inference_button.setEnabled(True)
 
     def on_inference_clicked(self):
-        """Spusť ML inference a zobraz výsledky v points panelu + canvas"""
+        """
+        Spusť ML inference v background threadu (ASYNC)
+
+        Phase 4: Nová asynchronní implementace
+        - Inference běží v background QThread
+        - UI zůstává responsive
+        - Progress indicator během inference
+        - Signal-based result handling
+        """
         if not self.image_confirmed or not self.current_image_path:
             logger.warning(f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí")
             return
 
         import config
-        if config.PRESENTATION_MODE and self.model_combo.currentText() == "model 2":
+        if config.PRESENTATION_MODE and self.model_combo.currentText() == "preview":
             from core.presentation.segmentation_demo import SegmentationDemoDialog
             SegmentationDemoDialog(self).exec()
+            # Pokračuj dál - po dialogu spusť inference!
 
         try:
-            # Inicializuj ML model pokud neexistuje
-            if self.ml_inference is None:
-                self.ml_inference = MLInferenceSimulator()
+            # Get model name from combo
+            model_name = self.model_combo.currentText()  # 'preview' nebo 'atlas_unet'
 
-            # Spusť inference - z uživatelské perspektivy to jen pracuje s obrázkem
-            logger.info(f"[Session {self.session_name}] Inference spuštěna pro: {self.current_image_path}")
-            inference_json = self.ml_inference.predict(self.current_image_path)
+            # Disable button - inference běží
+            self.inference_button.setText("⟳ 0%")
+            self.inference_button.setEnabled(False)
+            self.model_combo.setEnabled(False)
 
-            if not inference_json:
-                logger.error(f"[Session {self.session_name}] Inference vrátila None")
+            logger.info(
+                f"[Session {self.session_name}] Starting async inference: "
+                f"model={model_name}, image={self.current_image_path}"
+            )
+
+            # Spusť inference v background threadu
+            self.worker_manager.run_inference(
+                model_name=model_name,
+                image_path=self.current_image_path,
+                session_id=self.session_name
+            )
+
+            # Connect signály na callbacky
+            self.worker_manager.connect_signals(
+                on_started=self._on_inference_started,
+                on_progress=self._on_inference_progress,
+                on_result=self._on_inference_result,
+                on_error=self._on_inference_error,
+                on_finished=self._on_inference_finished
+            )
+
+        except Exception as e:
+            logger.error(f"[Session {self.session_name}] Chyba při spuštění inference: {e}")
+            import traceback
+            traceback.print_exc()
+
+            # Reset button
+            self.inference_button.setText("🔄 Inference")
+            self.inference_button.setEnabled(True)
+            self.model_combo.setEnabled(True)
+
+    def _on_inference_started(self):
+        """Callback: Inference se startuje"""
+        logger.debug(f"[Session {self.session_name}] Inference started in background")
+        self.inference_button.setText("⟳ Starting...")
+
+    def _on_inference_progress(self, progress_pct: int):
+        """Callback: Progress update (0-100%)"""
+        logger.debug(f"[Session {self.session_name}] Inference progress: {progress_pct}%")
+        self.inference_button.setText(f"⟳ {progress_pct}%")
+
+    def _on_inference_result(self, data: dict):
+        """
+        Callback: Inference hotova, zpracuj výsledky
+
+        Args:
+            data: {"status": "success", "result": {...}} nebo {"status": "error", "error": "msg"}
+        """
+        if data.get('status') != 'success':
+            error_msg = data.get('error', 'Unknown error')
+            logger.error(f"[Session {self.session_name}] Inference result status: {data.get('status')}")
+            logger.error(f"[Session {self.session_name}] Error message: {error_msg}")
+            # Call error handler to show dialog to user
+            self._on_inference_error(error_msg)
+            return
+
+        try:
+            result = data.get('result')  # LabelMe JSON
+
+            if not result:
+                logger.warning(f"[Session {self.session_name}] Inference returned empty result")
                 return
+
+            logger.debug(f"[Session {self.session_name}] Result keys: {result.keys() if isinstance(result, dict) else 'NOT A DICT'}")
+            logger.debug(f"[Session {self.session_name}] Result has 'shapes': {'shapes' in result if isinstance(result, dict) else 'N/A'}")
+            if isinstance(result, dict) and 'shapes' in result:
+                logger.debug(f"[Session {self.session_name}] Shapes count: {len(result['shapes'])}")
 
             # Zpracuj JSON výstup na VertebralPoints pro UI
-            vertebral_results = self.io_handler.parse_inference_output(inference_json)
+            vertebral_results = self.io_handler.parse_inference_output(result)
 
-            if vertebral_results:
-                logger.info(f"[Session {self.session_name}] Inference úspěšná - {len(vertebral_results)} obratlů")
-
-                # IMPORTANT: Ulož výsledky pro aktuální model
-                current_model = self.model_combo.currentText()
-                self.inference_results_by_model[current_model] = vertebral_results
-                logger.info(f"[Session {self.session_name}] Výsledky uloženy pro model: {current_model}")
-
-                # Předej výsledky canvas panelu (vlevo)
-                if self.current_pixmap:
-                    self.canvas_panel.set_image(self.current_pixmap)
-                    self.canvas_panel.set_vertebral_points(vertebral_results)
-
-                    # IMPORTANT: Nastav barvy podle modelu
-                    if current_model == "model 2":
-                        self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
-                    else:
-                        self.canvas_panel.set_point_colors(POINT_COLORS)
-
-                    logger.info(f"[Session {self.session_name}] Canvas updated with image and {len(vertebral_results)} points")
-
-                # Předej výsledky points panelu (vpravo - tabulka)
-                self.vertebral_panel.set_vertebral_data(vertebral_results)
-
-                self.inference_completed = True
-            else:
+            if not vertebral_results:
                 logger.warning(f"[Session {self.session_name}] Parsing vrátil prázdný seznam")
                 return
+
+            logger.info(f"[Session {self.session_name}] ✓ Inference completed - {len(vertebral_results)} vertebrae")
+
+            # IMPORTANT: Ulož výsledky pro aktuální model
+            current_model = self.model_combo.currentText()
+            self.inference_results_by_model[current_model] = vertebral_results
+            logger.info(f"[Session {self.session_name}] Výsledky uloženy pro model: {current_model}")
+
+            # Předej výsledky canvas panelu (vlevo)
+            if self.current_pixmap:
+                self.canvas_panel.set_image(self.current_pixmap)
+                self.canvas_panel.set_vertebral_points(vertebral_results)
+
+                # IMPORTANT: Nastav barvy podle modelu (preview = model 2 barvy)
+                if current_model == "preview":
+                    self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
+                else:
+                    self.canvas_panel.set_point_colors(POINT_COLORS)
+
+                logger.info(
+                    f"[Session {self.session_name}] Canvas updated with image and "
+                    f"{len(vertebral_results)} points"
+                )
+
+            # Předej výsledky points panelu (vpravo - tabulka)
+            self.vertebral_panel.set_vertebral_data(vertebral_results)
+
+            self.inference_completed = True
 
             # Aktivuj Body po dokončení inference
             self.menu_buttons["Body"].setEnabled(True)
@@ -650,9 +734,34 @@ class SessionScreen(QWidget):
             self.menu_buttons["Body"].click()
 
         except Exception as e:
-            logger.error(f"[Session {self.session_name}] Chyba při inference: {e}")
+            logger.error(f"[Session {self.session_name}] Error processing inference result: {e}")
             import traceback
             traceback.print_exc()
+
+    def _on_inference_error(self, error_msg: str):
+        """Callback: Chyba během inference"""
+        logger.error(f"[Session {self.session_name}] ✗ Inference error: {error_msg}")
+
+        # Show error dialog
+        QMessageBox.critical(
+            self,
+            "Chyba při inference",
+            f"Inference selhala:\n\n{error_msg}"
+        )
+
+        # Reset button
+        self.inference_button.setText("🔄 Inference")
+        self.inference_button.setEnabled(True)
+        self.model_combo.setEnabled(True)
+
+    def _on_inference_finished(self):
+        """Callback: Worker skončil (cleanup)"""
+        logger.debug(f"[Session {self.session_name}] Inference worker finished")
+
+        # Pokud inference completed, button je už updated
+        # Pokud error, button je už updated
+        # Just log for debugging
+        pass
 
     def on_confirm_points_clicked(self):
         """Obsluha kliknutí na 'Potvrdit body' - lze volat opakovaně"""
@@ -701,10 +810,10 @@ class SessionScreen(QWidget):
         """Změna modelu - aktualizuj UI a zpřístupni inference tlačítko"""
         logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
 
-        # Zobraz/skryj parametry box podle modelu
-        is_model_2 = (model_name == "model 2")
-        self.params_label.setVisible(is_model_2)
-        self.params_box.setVisible(is_model_2)
+        # Zobraz/skryj parametry box podle modelu (preview = extended model s parametry)
+        is_preview = (model_name == "preview")
+        self.params_label.setVisible(is_preview)
+        self.params_box.setVisible(is_preview)
 
         # IMPORTANT: Pokud máme uložené výsledky pro tento model, zobraz je!
         if model_name in self.inference_results_by_model:
@@ -716,8 +825,8 @@ class SessionScreen(QWidget):
                 self.canvas_panel.set_image(self.current_pixmap)
                 self.canvas_panel.set_vertebral_points(vertebral_results)
 
-                # IMPORTANT: Nastav barvy podle modelu
-                if model_name == "model 2":
+                # IMPORTANT: Nastav barvy podle modelu (preview = model 2 barvy)
+                if model_name == "preview":
                     self.canvas_panel.set_point_colors(POINT_COLORS_MODEL_2)
                 else:
                     self.canvas_panel.set_point_colors(POINT_COLORS)
@@ -778,3 +887,24 @@ class SessionScreen(QWidget):
             self.menu_buttons["Výsledky"].setEnabled(False)
             # Vrať se na Body tab
             self.menu_buttons["Body"].click()
+
+    def closeEvent(self, event):
+        """Phase 4: Cleanup když se session zavírá"""
+        logger.info(f"[Session {self.session_name}] Closing - cleaning up worker...")
+
+        # Stop worker a unload model z manager
+        if self.worker_manager:
+            self.worker_manager.stop()
+            logger.info(f"[Session {self.session_name}] Worker stopped")
+
+        # Unload model z memory
+        try:
+            manager = ModelManager.get_instance()
+            # Unload both preview and atlas_unet if they were loaded
+            for model_name in ['preview', 'atlas_unet']:
+                manager.unload_model(model_name, self.session_name)
+            logger.info(f"[Session {self.session_name}] Models unloaded from memory")
+        except Exception as e:
+            logger.warning(f"[Session {self.session_name}] Error unloading models: {e}")
+
+        event.accept()

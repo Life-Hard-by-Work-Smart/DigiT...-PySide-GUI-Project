@@ -14,6 +14,16 @@ class BaseMLInference(ABC):
     Output: JSON s detekovanými body (maskhat format)
     """
 
+    def __init__(self, model_name: str, **kwargs):
+        """
+        Initialize base model
+
+        Args:
+            model_name: Identifier modelu
+            **kwargs: Additional config (device, atd.)
+        """
+        self.model_name = model_name
+
     @abstractmethod
     def predict(self, image_path: str, **kwargs) -> Optional[Dict[str, Any]]:
         """

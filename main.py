@@ -5,6 +5,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from ui.main_window import MainWindow
+from core.models.initialize_models import initialize_models
 from logger import logger
 
 
@@ -19,6 +20,11 @@ def main():
             padding: 4px 6px;
         }
     """)
+
+    # Initialize ML models - jedenkrát na startu
+    logger.info("Initializing ML models...")
+    initialize_models()
+
     window = MainWindow()
     window.show()
     logger.info("Aplikace spuštěna")
