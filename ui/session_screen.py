@@ -10,7 +10,11 @@
     QScrollArea,
     QComboBox,
     QMessageBox,
-    QProgressBar
+    QProgressBar,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QSizePolicy,
 )
 
 from PySide6.QtCore import Qt, Signal
@@ -25,12 +29,14 @@ from core.models.model_manager import ModelManager
 from core.models.registry import ModelRegistry
 from core.workers.inference_worker import WorkerManager
 from core.io import InferenceOutputHandler
+from core.metrics.draw_metrics import compute_metrics, toyama_classify
 from config import POINT_COLORS, POINT_COLORS_MODEL_2
 from logger import logger
 
 
 class SessionScreen(QWidget):
     """Jednotlivá session obrazovka s X-ray a workflow step panelem"""
+
     def __init__(self, session_name):
         super().__init__()
         self.session_name = session_name
@@ -40,10 +46,14 @@ class SessionScreen(QWidget):
         self.image_confirmed = False  # Nový stav - potvrzení snímku
         self.inference_completed = False
         self.points_confirmed = False
+        self.current_metrics: dict | None = None
+        self.current_toyama: str | None = None
 
         # Inference setup
         self.current_image_path = None
-        self.ml_inference = None  # ML model simulator (deprecated - use WorkerManager now)
+        self.ml_inference = (
+            None  # ML model simulator (deprecated - use WorkerManager now)
+        )
         self.io_handler = InferenceOutputHandler()  # Handler pro zpracování výstupu
 
         # Phase 4: Async inference with WorkerManager
@@ -60,7 +70,9 @@ class SessionScreen(QWidget):
         # LEFT: Drag-drop frame s canvas
         self.xray_frame = DragDropFrame()
         self.xray_frame.image_loaded.connect(self.on_image_loaded)
-        self.xray_frame.setStyleSheet("border: 2px solid #999; background-color: white; margin: 0px; padding: 0px;")
+        self.xray_frame.setStyleSheet(
+            "border: 2px solid #999; background-color: white; margin: 0px; padding: 0px;"
+        )
         self.xray_frame.setAcceptDrops(True)  # Drag-drop aktivní
         xray_layout = QVBoxLayout(self.xray_frame)
         xray_layout.setContentsMargins(0, 0, 0, 0)
@@ -69,7 +81,9 @@ class SessionScreen(QWidget):
         # Canvas - bude hlavní plocha pro zobrazení obrázku a bodů
         self.canvas_panel = ImageCanvasPanel()
         self.canvas_panel.pointSelected.connect(self._on_canvas_point_selected)
-        self.canvas_panel.pointMoved.connect(self._on_point_moved)  # Phase 2: Reset confirmation when point moves
+        self.canvas_panel.pointMoved.connect(
+            self._on_point_moved
+        )  # Phase 2: Reset confirmation when point moves
 
         # Widget pro text a tlačítko (overlay) - zobrazuje se na začátku
         overlay_widget = QWidget()
@@ -82,7 +96,9 @@ class SessionScreen(QWidget):
         top_bar.addStretch()
 
         self.xray_label = QLabel("Drag a drop snímek sem")
-        self.xray_label.setStyleSheet("color: #666; font-size: 12px; font-weight: bold;")
+        self.xray_label.setStyleSheet(
+            "color: #666; font-size: 12px; font-weight: bold;"
+        )
         top_bar.addWidget(self.xray_label)
 
         # Malé tlačítko vedle textu
@@ -113,7 +129,9 @@ class SessionScreen(QWidget):
         # Stacked widget - zobrazuj buď overlay (na začátku) nebo canvas (po inference)
         self.xray_stack = QStackedWidget()
         self.xray_stack.setContentsMargins(0, 0, 0, 0)  # CRITICAL: Žádné margins
-        self.xray_stack.setStyleSheet("margin: 0px; padding: 0px; border: 0px;")  # CRITICAL: Žádné padding
+        self.xray_stack.setStyleSheet(
+            "margin: 0px; padding: 0px; border: 0px;"
+        )  # CRITICAL: Žádné padding
         self.xray_stack.addWidget(overlay_widget)  # Index 0 - overlay
         self.xray_stack.addWidget(self.canvas_panel)  # Index 1 - canvas
         self.xray_stack.setCurrentIndex(0)  # Zobraz overlay na začátku
@@ -175,33 +193,39 @@ class SessionScreen(QWidget):
             self.menu_buttons[menu_item] = btn
             menu_layout.addWidget(btn)
 
-        self.menu_buttons["Nastavení"].setToolTip("Nastavení snímku a výběr modelu pro inferenci")
-        self.menu_buttons["Body"].setToolTip("Zobrazení a ruční editace detekovaných klíčových bodů\n(dostupné po spuštění inference)")
-        self.menu_buttons["Výsledky"].setToolTip("Přehled klinických metrik\n(dostupné po potvrzení bodů)")
+        self.menu_buttons["Nastavení"].setToolTip(
+            "Nastavení snímku a výběr modelu pro inferenci"
+        )
+        self.menu_buttons["Body"].setToolTip(
+            "Zobrazení a ruční editace detekovaných klíčových bodů\n(dostupné po spuštění inference)"
+        )
+        self.menu_buttons["Výsledky"].setToolTip(
+            "Přehled klinických metrik\n(dostupné po potvrzení bodů)"
+        )
 
         workflow_layout.addLayout(menu_layout)
 
         # ===== STACKED WIDGET PRO OBSAH =====
         self.stacked_widget = QStackedWidget()
 
-
         # Content 1: Nastavení
         content_frame_1 = QFrame()
         content_frame_1.setStyleSheet(
-            "border: 1px solid #ddd;" \
-            " background-color: white;"
+            "border: 1px solid #ddd; background-color: white;"
         )
         content_layout_1 = QVBoxLayout(content_frame_1)
 
         content_label_1 = QLabel("Výběr snímku")
         content_label_1.setAlignment(Qt.AlignCenter)
-        content_label_1.setStyleSheet("color: #666; font-size: 12px; font-weight: bold;")
+        content_label_1.setStyleSheet(
+            "color: #666; font-size: 12px; font-weight: bold;"
+        )
         content_layout_1.addWidget(content_label_1)
 
         # 2 tlačítka - Smazat snímek a Potvrdit snímek
         buttons_layout = QHBoxLayout()
 
-        self.delete_image_btn = QPushButton("�️ Smazat")
+        self.delete_image_btn = QPushButton("❌ Smazat")
         self.delete_image_btn.setFixedHeight(28)
         self.delete_image_btn.setCursor(Qt.PointingHandCursor)
         self.delete_image_btn.setEnabled(False)  # Disabled dokud není snímek
@@ -256,7 +280,9 @@ class SessionScreen(QWidget):
             }
         """)
         self.confirm_image_btn.clicked.connect(self.on_confirm_image_clicked)
-        self.confirm_image_btn.setToolTip("Potvrdit snímek — odemkne výběr modelu a spuštění inference")
+        self.confirm_image_btn.setToolTip(
+            "Potvrdit snímek — odemkne výběr modelu a spuštění inference"
+        )
         buttons_layout.addWidget(self.confirm_image_btn)
 
         content_layout_1.addLayout(buttons_layout)
@@ -307,7 +333,9 @@ class SessionScreen(QWidget):
             }
         """)
         self.model_combo.currentTextChanged.connect(self.on_model_changed)
-        self.model_combo.setToolTip("Vyberte model pro automatickou segmentaci obratlů a detekci klíčových bodů")
+        self.model_combo.setToolTip(
+            "Vyberte model pro automatickou segmentaci obratlů a detekci klíčových bodů"
+        )
         content_layout_1.addWidget(self.model_combo)
 
         # Spacer
@@ -315,12 +343,16 @@ class SessionScreen(QWidget):
 
         # Parameters box - viditelný jen pro preview model
         self.params_label = QLabel("Nastavení parametrů:")
-        self.params_label.setStyleSheet("color: #333; font-size: 11px; font-weight: bold;")
+        self.params_label.setStyleSheet(
+            "color: #333; font-size: 11px; font-weight: bold;"
+        )
         self.params_label.setVisible(False)
         content_layout_1.addWidget(self.params_label)
 
         self.params_box = QFrame()
-        self.params_box.setStyleSheet("border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 4px;")
+        self.params_box.setStyleSheet(
+            "border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 4px;"
+        )
         self.params_box.setMinimumHeight(80)
         params_box_layout = QVBoxLayout(self.params_box)
         params_box_layout.setContentsMargins(8, 8, 8, 8)
@@ -333,7 +365,6 @@ class SessionScreen(QWidget):
 
         # Spacer
         content_layout_1.addStretch()
-
 
         # Inference button - uložení jako self.inference_button pro pozdější použití
         self.inference_button = QPushButton("Spustit Inferenci")
@@ -363,20 +394,18 @@ class SessionScreen(QWidget):
         """)
         # Propoj s metodou pro spuštění inference
         self.inference_button.clicked.connect(self.on_inference_clicked)
-        self.inference_button.setToolTip("Spustit automatickou segmentaci obratlů a detekci klíčových bodů")
-
-
+        self.inference_button.setToolTip(
+            "Spustit automatickou segmentaci obratlů a detekci klíčových bodů"
+        )
 
         content_layout_1.addStretch()
         content_layout_1.addWidget(self.inference_button)
         self.stacked_widget.addWidget(content_frame_1)
 
-
         # Content 2: Body - pouze tabulka s body (canvas je v main xray_frame)
         content_frame_2 = QFrame()
         content_frame_2.setStyleSheet(
-            "border: 1px solid #ddd;" \
-            " background-color: white;"
+            "border: 1px solid #ddd; background-color: white;"
         )
         content_layout_2_main = QVBoxLayout(content_frame_2)
         content_layout_2_main.setContentsMargins(5, 5, 5, 5)
@@ -384,7 +413,9 @@ class SessionScreen(QWidget):
 
         # Nadpis
         content_label_2 = QLabel("Vertebrální body")
-        content_label_2.setStyleSheet("color: #333; font-size: 12px; font-weight: bold;")
+        content_label_2.setStyleSheet(
+            "color: #333; font-size: 12px; font-weight: bold;"
+        )
         content_layout_2_main.addWidget(content_label_2)
 
         # Points table
@@ -417,23 +448,96 @@ class SessionScreen(QWidget):
             }
         """)
         self.confirm_points_button.clicked.connect(self.on_confirm_points_clicked)
-        self.confirm_points_button.setToolTip("Uzamknout body a přejít k výpočtu klinických metrik\n(body již nepůjde editovat)")
+        self.confirm_points_button.setToolTip(
+            "Uzamknout body a přejít k výpočtu klinických metrik\n(body již nepůjde editovat)"
+        )
         content_layout_2_main.addWidget(self.confirm_points_button)
 
         self.stacked_widget.addWidget(content_frame_2)
 
-
-        # Content 3: Výsledky =
+        # Content 3: Výsledky
         content_frame_3 = QFrame()
         content_frame_3.setStyleSheet(
             "border: 1px solid #ddd; background-color: white;"
         )
         content_layout_3 = QVBoxLayout(content_frame_3)
+        content_layout_3.setContentsMargins(8, 8, 8, 8)
+        content_layout_3.setSpacing(6)
+
         content_label_3 = QLabel("Výsledky analýzy")
         content_label_3.setAlignment(Qt.AlignCenter)
-        content_label_3.setStyleSheet("color: #666; font-size: 12px;")
+        content_label_3.setStyleSheet(
+            "color: #333; font-size: 13px; font-weight: bold; border: none;"
+        )
         content_layout_3.addWidget(content_label_3)
-        # export metrics button - uložení jako self.export_metrics_button pro pozdější použití
+
+        # Toyama classification badge
+        self.toyama_label_widget = QLabel("—")
+        self.toyama_label_widget.setAlignment(Qt.AlignCenter)
+        self.toyama_label_widget.setFixedHeight(28)
+        self.toyama_label_widget.setStyleSheet(
+            "border-radius: 4px; border: none; background-color: #e0e0e0; color: #555; font-size: 11px; font-weight: bold;"
+        )
+        content_layout_3.addWidget(self.toyama_label_widget)
+
+        # Metrics table
+        self.metrics_table = QTableWidget(0, 2)
+        self.metrics_table.setHorizontalHeaderLabels(["Metrika", "Hodnota"])
+        self.metrics_table.horizontalHeader().setSectionResizeMode(
+            0, QHeaderView.Stretch
+        )
+        self.metrics_table.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeToContents
+        )
+        self.metrics_table.verticalHeader().setVisible(False)
+        self.metrics_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.metrics_table.setSelectionMode(QTableWidget.NoSelection)
+        self.metrics_table.setAlternatingRowColors(True)
+        self.metrics_table.setStyleSheet("""
+            QTableWidget {
+                border: 1px solid #ddd;
+                font-size: 11px;
+                gridline-color: #eee;
+                color: #222;
+                background-color: #ffffff;
+            }
+            QTableWidget::item {
+                color: #222;
+                background-color: #ffffff;
+                padding: 3px 6px;
+            }
+            QTableWidget::item:alternate {
+                background-color: #f5f7fa;
+            }
+            QTableWidget::item:hover {
+                background-color: #dbeafe;
+                color: #222;
+            }
+            QTableWidget::item:selected {
+                background-color: #bfdbfe;
+                color: #1e3a5f;
+            }
+            QHeaderView::section {
+                background-color: #f0f2f5;
+                color: #333;
+                font-weight: bold;
+                padding: 4px 6px;
+                border: none;
+                border-bottom: 1px solid #ddd;
+            }
+        """)
+        content_layout_3.addWidget(self.metrics_table, stretch=1)
+
+        # No-metrics placeholder (shown when metrics aren't available)
+        self.no_metrics_label = QLabel("— Metriky nejsou k dispozici —")
+        self.no_metrics_label.setAlignment(Qt.AlignCenter)
+        self.no_metrics_label.setStyleSheet(
+            "color: #aaa; font-size: 11px; border: none;"
+        )
+        self.no_metrics_label.setVisible(False)
+        content_layout_3.addWidget(self.no_metrics_label, stretch=1)
+
+        # Export button
         self.export_metrics_button = QPushButton("Exportovat")
         self.export_metrics_button.setToolTip("Exportovat klinické metriky do souboru")
         self.export_metrics_button.setFixedHeight(40)
@@ -455,10 +559,7 @@ class SessionScreen(QWidget):
                 background-color: #3d8b40;
             }
         """)
-        # Placeholder pro budoucí funkcionalitu - lze přidat connect k metodě
-        # self.export_metrics_button.clicked.connect(self.on_inference_clicked)
-
-        content_layout_3.addStretch()
+        self.export_metrics_button.clicked.connect(self._on_export_metrics_clicked)
         content_layout_3.addWidget(self.export_metrics_button)
 
         self.stacked_widget.addWidget(content_frame_3)
@@ -510,7 +611,7 @@ class SessionScreen(QWidget):
     def update_ui_visibility(self, current_tab_index):
         """Aktualizuj viditelnost prvků podle aktivního tabu"""
         # Jen v Nastavení je vidět button na výběr souboru a drag-drop
-        is_settings = (current_tab_index == 0)
+        is_settings = current_tab_index == 0
         # Tlačítko zmizí po nahrání obrázku
         self.open_file_btn.setVisible(is_settings and not self.image_loaded)
         self.xray_frame.setAcceptDrops(is_settings)
@@ -521,7 +622,7 @@ class SessionScreen(QWidget):
             self,
             "Otevřít snímek",
             "",
-            "Obrázky (*.png *.jpg *.jpeg *.bmp *.gif);;Všechny soubory (*.*)"
+            "Obrázky (*.png *.jpg *.jpeg *.bmp *.gif);;Všechny soubory (*.*)",
         )
         if file_path:
             self.load_image(file_path)
@@ -543,7 +644,9 @@ class SessionScreen(QWidget):
             self.delete_image_btn.setEnabled(True)
             self.confirm_image_btn.setEnabled(True)
 
-            logger.info(f"[Session {self.session_name}] Obrázek načten: {file_path} ({pixmap.width()}x{pixmap.height()})")
+            logger.info(
+                f"[Session {self.session_name}] Obrázek načten: {file_path} ({pixmap.width()}x{pixmap.height()})"
+            )
 
     def on_image_loaded(self, file_path):
         """Callback při drag-drop obrázku"""
@@ -600,12 +703,16 @@ class SessionScreen(QWidget):
         - Signal-based result handling
         """
         if not self.image_confirmed or not self.current_image_path:
-            logger.warning(f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí")
+            logger.warning(
+                f"[Session {self.session_name}] Chyba: snímek není potvrzen nebo cesta chybí"
+            )
             return
 
         import config
+
         if config.PRESENTATION_MODE and self.model_combo.currentText() == "preview":
             from core.presentation.segmentation_demo import SegmentationDemoDialog
+
             SegmentationDemoDialog(self).exec()
             # Pokračuj dál - po dialogu spusť inference!
 
@@ -627,7 +734,7 @@ class SessionScreen(QWidget):
             self.worker_manager.run_inference(
                 model_name=model_name,
                 image_path=self.current_image_path,
-                session_id=self.session_name
+                session_id=self.session_name,
             )
 
             # Connect signály na callbacky
@@ -636,12 +743,15 @@ class SessionScreen(QWidget):
                 on_progress=self._on_inference_progress,
                 on_result=self._on_inference_result,
                 on_error=self._on_inference_error,
-                on_finished=self._on_inference_finished
+                on_finished=self._on_inference_finished,
             )
 
         except Exception as e:
-            logger.error(f"[Session {self.session_name}] Chyba při spuštění inference: {e}")
+            logger.error(
+                f"[Session {self.session_name}] Chyba při spuštění inference: {e}"
+            )
             import traceback
+
             traceback.print_exc()
 
             # Reset button
@@ -656,7 +766,9 @@ class SessionScreen(QWidget):
 
     def _on_inference_progress(self, progress_pct: int):
         """Callback: Progress update (0-100%)"""
-        logger.debug(f"[Session {self.session_name}] Inference progress: {progress_pct}%")
+        logger.debug(
+            f"[Session {self.session_name}] Inference progress: {progress_pct}%"
+        )
         self.inference_button.setText(f"⟳ {progress_pct}%")
 
     def _on_inference_result(self, data: dict):
@@ -666,39 +778,55 @@ class SessionScreen(QWidget):
         Args:
             data: {"status": "success", "result": {...}} nebo {"status": "error", "error": "msg"}
         """
-        if data.get('status') != 'success':
-            error_msg = data.get('error', 'Unknown error')
-            logger.error(f"[Session {self.session_name}] Inference result status: {data.get('status')}")
+        if data.get("status") != "success":
+            error_msg = data.get("error", "Unknown error")
+            logger.error(
+                f"[Session {self.session_name}] Inference result status: {data.get('status')}"
+            )
             logger.error(f"[Session {self.session_name}] Error message: {error_msg}")
             # Call error handler to show dialog to user
             self._on_inference_error(error_msg)
             return
 
         try:
-            result = data.get('result')  # LabelMe JSON
+            result = data.get("result")  # LabelMe JSON
 
             if not result:
-                logger.warning(f"[Session {self.session_name}] Inference returned empty result")
+                logger.warning(
+                    f"[Session {self.session_name}] Inference returned empty result"
+                )
                 return
 
-            logger.debug(f"[Session {self.session_name}] Result keys: {result.keys() if isinstance(result, dict) else 'NOT A DICT'}")
-            logger.debug(f"[Session {self.session_name}] Result has 'shapes': {'shapes' in result if isinstance(result, dict) else 'N/A'}")
-            if isinstance(result, dict) and 'shapes' in result:
-                logger.debug(f"[Session {self.session_name}] Shapes count: {len(result['shapes'])}")
+            logger.debug(
+                f"[Session {self.session_name}] Result keys: {result.keys() if isinstance(result, dict) else 'NOT A DICT'}"
+            )
+            logger.debug(
+                f"[Session {self.session_name}] Result has 'shapes': {'shapes' in result if isinstance(result, dict) else 'N/A'}"
+            )
+            if isinstance(result, dict) and "shapes" in result:
+                logger.debug(
+                    f"[Session {self.session_name}] Shapes count: {len(result['shapes'])}"
+                )
 
             # Zpracuj JSON výstup na VertebralPoints pro UI
             vertebral_results = self.io_handler.parse_inference_output(result)
 
             if not vertebral_results:
-                logger.warning(f"[Session {self.session_name}] Parsing vrátil prázdný seznam")
+                logger.warning(
+                    f"[Session {self.session_name}] Parsing vrátil prázdný seznam"
+                )
                 return
 
-            logger.info(f"[Session {self.session_name}] ✓ Inference completed - {len(vertebral_results)} vertebrae")
+            logger.info(
+                f"[Session {self.session_name}] ✓ Inference completed - {len(vertebral_results)} vertebrae"
+            )
 
             # IMPORTANT: Ulož výsledky pro aktuální model
             current_model = self.model_combo.currentText()
             self.inference_results_by_model[current_model] = vertebral_results
-            logger.info(f"[Session {self.session_name}] Výsledky uloženy pro model: {current_model}")
+            logger.info(
+                f"[Session {self.session_name}] Výsledky uloženy pro model: {current_model}"
+            )
 
             # Předej výsledky canvas panelu (vlevo)
             if self.current_pixmap:
@@ -734,8 +862,11 @@ class SessionScreen(QWidget):
             self.menu_buttons["Body"].click()
 
         except Exception as e:
-            logger.error(f"[Session {self.session_name}] Error processing inference result: {e}")
+            logger.error(
+                f"[Session {self.session_name}] Error processing inference result: {e}"
+            )
             import traceback
+
             traceback.print_exc()
 
     def _on_inference_error(self, error_msg: str):
@@ -744,9 +875,7 @@ class SessionScreen(QWidget):
 
         # Show error dialog
         QMessageBox.critical(
-            self,
-            "Chyba při inference",
-            f"Inference selhala:\n\n{error_msg}"
+            self, "Chyba při inference", f"Inference selhala:\n\n{error_msg}"
         )
 
         # Reset button
@@ -770,12 +899,123 @@ class SessionScreen(QWidget):
         # Aktivuj Výsledky po potvrzení bodů
         self.menu_buttons["Výsledky"].setEnabled(True)
 
+        # Vypočítej klinické metriky
+        try:
+            pts = self._vertebrals_to_pts(self.vertebral_panel.vertebrals)
+            self.current_metrics = compute_metrics(pts)
+            self.current_toyama, _ = toyama_classify(pts, px_tol=2.0)
+            logger.info(
+                f"[Session {self.session_name}] Metriky vypočítány: {list(self.current_metrics.keys())}"
+            )
+        except KeyError as e:
+            logger.warning(
+                f"[Session {self.session_name}] Nelze vypočítat metriky: {e}"
+            )
+            self.current_metrics = None
+            self.current_toyama = None
+        self._update_results_display()
+        self.canvas_panel.set_metrics_visible(self.current_metrics is not None)
+
         # Deselektuj bod když se přepínáme na Výsledky tab
         self.canvas_panel.deselect_point()
         self.vertebral_panel.deselect_all()
 
         # Automaticky přepni do Výsledky tabu
         self.menu_buttons["Výsledky"].click()
+
+    def _vertebrals_to_pts(self, vertebrals) -> dict:
+        """Convert VertebralPoints list to flat {label: (x, y)} dict for compute_metrics."""
+        pts = {}
+        for vertebral in vertebrals:
+            for point in vertebral.points:
+                pts[point.label] = (point.x, point.y)
+        return pts
+
+    def _update_results_display(self):
+        """Populate the Výsledky tab with computed metrics and Toyama classification."""
+        _TOYAMA_COLORS = {
+            "lordoza": ("#d4edda", "#155724"),
+            "kyfoza": ("#d4edda", "#155724"),
+            "rovný tvar": ("#e2e3e5", "#383d41"),
+            "esovitý tvar": ("#fff3cd", "#856404"),
+        }
+
+        _METRIC_ROWS = [
+            ("Cobb_C2_C7_deg", "Cobb C2-C7", lambda v: f"{abs(v):.1f}°"),
+            ("Slope_C2_deg", "C2 Slope", lambda v: f"{v:.1f}°"),
+            ("SVA_C2_C7_px", "SVA C2-C7", lambda v: f"{v:.0f} px"),
+            ("SVA_C2_C7_abs_px", "SVA C2-C7 (abs)", lambda v: f"{v:.0f} px"),
+            ("Segmental_C2_C3_deg", "Segmentální C2/C3", lambda v: f"{v:.1f}°"),
+            ("Segmental_C3_C4_deg", "Segmentální C3/C4", lambda v: f"{v:.1f}°"),
+            ("Segmental_C4_C5_deg", "Segmentální C4/C5", lambda v: f"{v:.1f}°"),
+            ("Segmental_C5_C6_deg", "Segmentální C5/C6", lambda v: f"{v:.1f}°"),
+            ("Segmental_C6_C7_deg", "Segmentální C6/C7", lambda v: f"{v:.1f}°"),
+        ]
+
+        if not self.current_metrics:
+            self.toyama_label_widget.setText("—")
+            self.toyama_label_widget.setStyleSheet(
+                "border-radius: 4px; border: none; background-color: #e0e0e0; color: #555; font-size: 11px; font-weight: bold;"
+            )
+            self.metrics_table.setVisible(False)
+            self.no_metrics_label.setVisible(True)
+            return
+
+        # Toyama badge
+        toyama = self.current_toyama or "—"
+        bg, fg = _TOYAMA_COLORS.get(toyama, ("#e0e0e0", "#555"))
+        self.toyama_label_widget.setText(f"Toyama: {toyama}")
+        self.toyama_label_widget.setStyleSheet(
+            f"border-radius: 4px; border: none; background-color: {bg}; color: {fg}; font-size: 11px; font-weight: bold;"
+        )
+
+        # Metrics table
+        self.metrics_table.setVisible(True)
+        self.no_metrics_label.setVisible(False)
+        self.metrics_table.setRowCount(0)
+
+        for key, display_name, fmt in _METRIC_ROWS:
+            if key not in self.current_metrics:
+                continue
+            row = self.metrics_table.rowCount()
+            self.metrics_table.insertRow(row)
+            name_item = QTableWidgetItem(display_name)
+            value_item = QTableWidgetItem(fmt(self.current_metrics[key]))
+            value_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.metrics_table.setItem(row, 0, name_item)
+            self.metrics_table.setItem(row, 1, value_item)
+
+    def _on_export_metrics_clicked(self):
+        """Export current metrics to CSV or JSON."""
+        if not self.current_metrics:
+            QMessageBox.information(
+                self, "Export", "Nejsou k dispozici žádné metriky k exportu."
+            )
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Exportovat metriky", "", "CSV (*.csv);;JSON (*.json)"
+        )
+        if not path:
+            return
+        try:
+            if path.endswith(".json"):
+                import json
+
+                data = {"toyama": self.current_toyama, **self.current_metrics}
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+            else:
+                import csv
+
+                with open(path, "w", newline="", encoding="utf-8") as f:
+                    w = csv.writer(f)
+                    w.writerow(["Metrika", "Hodnota"])
+                    w.writerow(["Toyama", self.current_toyama])
+                    for k, v in self.current_metrics.items():
+                        w.writerow([k, round(v, 3)])
+            logger.info(f"[Session {self.session_name}] Metriky exportovány do: {path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Chyba exportu", f"Export selhal:\n{e}")
 
     def _on_canvas_point_selected(self, point_id: str):
         """Canvas vybral bod - zvýrazni ho v tabulce"""
@@ -797,7 +1037,9 @@ class SessionScreen(QWidget):
         for vertebral in self.vertebral_panel.vertebrals:
             for point in vertebral.points:
                 if point.label == point_id:
-                    logger.info(f"[Session {self.session_name}] Resetuji bod {point_id} z ({point.x:.1f}, {point.y:.1f}) na ({point.original_x:.1f}, {point.original_y:.1f})")
+                    logger.info(
+                        f"[Session {self.session_name}] Resetuji bod {point_id} z ({point.x:.1f}, {point.y:.1f}) na ({point.original_x:.1f}, {point.original_y:.1f})"
+                    )
                     point.x = point.original_x
                     point.y = point.original_y
                     # Updatuj tabulku
@@ -811,13 +1053,15 @@ class SessionScreen(QWidget):
         logger.debug(f"[Session {self.session_name}] Model změněn na: {model_name}")
 
         # Zobraz/skryj parametry box podle modelu (preview = extended model s parametry)
-        is_preview = (model_name == "preview")
+        is_preview = model_name == "preview"
         self.params_label.setVisible(is_preview)
         self.params_box.setVisible(is_preview)
 
         # IMPORTANT: Pokud máme uložené výsledky pro tento model, zobraz je!
         if model_name in self.inference_results_by_model:
-            logger.info(f"[Session {self.session_name}] Načítám uložené výsledky pro: {model_name}")
+            logger.info(
+                f"[Session {self.session_name}] Načítám uložené výsledky pro: {model_name}"
+            )
             vertebral_results = self.inference_results_by_model[model_name]
 
             # Zobraz výsledky v canvas
@@ -839,10 +1083,14 @@ class SessionScreen(QWidget):
             self.inference_completed = True
             self.inference_button.setText("✓ Inference hotova")
             self.inference_button.setEnabled(False)
-            logger.info(f"[Session {self.session_name}] Výsledky načteny: {len(vertebral_results)} bodů")
+            logger.info(
+                f"[Session {self.session_name}] Výsledky načteny: {len(vertebral_results)} bodů"
+            )
         else:
             # Žádné uložené výsledky - resetuj UI a vymaz body z canvasu
-            logger.info(f"[Session {self.session_name}] Žádné uložené výsledky pro: {model_name}")
+            logger.info(
+                f"[Session {self.session_name}] Žádné uložené výsledky pro: {model_name}"
+            )
 
             # VYMAZAT body z canvasu a tabulky
             self.canvas_panel.set_vertebral_points([])  # Vyčisti body na canvasu
@@ -860,7 +1108,9 @@ class SessionScreen(QWidget):
 
     def _on_point_moved(self, point_id: str, x: float, y: float):
         """Bod se pohybuje - resetuj potvrzení bodů + updatuj tabulku"""
-        logger.debug(f"[Session {self.session_name}] Point moved: {point_id} → ({x:.1f}, {y:.1f})")
+        logger.debug(
+            f"[Session {self.session_name}] Point moved: {point_id} → ({x:.1f}, {y:.1f})"
+        )
 
         # Phase 3.4: Update data model - aktualizuj bod v vertebral_panel
         # Najdi bod v tabulce a updatuj jeho souřadnice
@@ -868,20 +1118,26 @@ class SessionScreen(QWidget):
         for vertebral in self.vertebral_panel.vertebrals:
             for point in vertebral.points:
                 if point.label == point_id:
-                    logger.debug(f"Found point {point_id}, updating from ({point.x}, {point.y}) to ({x}, {y})")
+                    logger.debug(
+                        f"Found point {point_id}, updating from ({point.x}, {point.y}) to ({x}, {y})"
+                    )
                     point.x = x
                     point.y = y
                     found = True
                     break
 
         if not found:
-            logger.warning(f"[Session {self.session_name}] Point {point_id} NOT found in vertebral_panel!")
+            logger.warning(
+                f"[Session {self.session_name}] Point {point_id} NOT found in vertebral_panel!"
+            )
 
         # Update tabulka UI s novými souřadnicemi
         self.vertebral_panel.update_coordinates(point_id, x, y)
 
         if self.points_confirmed:
-            logger.info(f"[Session {self.session_name}] Bod {point_id} se pohybuje - resetuji potvrzení")
+            logger.info(
+                f"[Session {self.session_name}] Bod {point_id} se pohybuje - resetuji potvrzení"
+            )
             self.points_confirmed = False
             # Zákáž Výsledky tab dokud se body znovu nepotvrdí
             self.menu_buttons["Výsledky"].setEnabled(False)
@@ -901,7 +1157,7 @@ class SessionScreen(QWidget):
         try:
             manager = ModelManager.get_instance()
             # Unload both preview and atlas_unet if they were loaded
-            for model_name in ['preview', 'atlas_unet']:
+            for model_name in ["preview", "atlas_unet"]:
                 manager.unload_model(model_name, self.session_name)
             logger.info(f"[Session {self.session_name}] Models unloaded from memory")
         except Exception as e:
