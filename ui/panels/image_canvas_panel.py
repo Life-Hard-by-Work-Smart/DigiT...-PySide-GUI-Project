@@ -1,6 +1,6 @@
 """Interactive canvas pro zobrazení a editaci vertebrálních bodů na obrázku"""
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QPushButton
 from PySide6.QtCore import Qt, Signal, QSize, QRect, QPoint
 from PySide6.QtGui import (
     QPixmap,
@@ -68,6 +68,9 @@ class PointsOverlay(QWidget):
         self.vertebral_groups: list = []   # structured list[VertebralPoints] for mask drawing
         self.mask_visible: bool = False
 
+        # Metrics overlay state
+        self.metrics_visible: bool = False
+
         # Visual
         self.setStyleSheet("background-color: #ffffff;")
         self.setToolTip(
@@ -87,6 +90,44 @@ class PointsOverlay(QWidget):
         """Show or hide the segmentation mask overlay"""
         self.mask_visible = visible
         self.update()
+
+    def set_metrics_visible(self, visible: bool) -> None:
+        """Show or hide the clinical metrics overlay"""
+        self.metrics_visible = visible
+        self.update()
+
+    def _draw_extended_line(self, painter: QPainter, img_p1: tuple, img_p2: tuple, pen: QPen):
+        """Draw a line extended to image bounds, using image-space coordinates."""
+        if not self.image:
+            return
+        x1, y1 = img_p1
+        x2, y2 = img_p2
+        dx, dy = x2 - x1, y2 - y1
+        if dx == 0 and dy == 0:
+            return
+        iw, ih = self.image.width(), self.image.height()
+
+        # Find t values where line exits image rect [0,iw] x [0,ih]
+        t_vals = []
+        if dx != 0:
+            t_vals += [(0 - x1) / dx, (iw - x1) / dx]
+        if dy != 0:
+            t_vals += [(0 - y1) / dy, (ih - y1) / dy]
+
+        pts = []
+        for t in t_vals:
+            ix = x1 + t * dx
+            iy = y1 + t * dy
+            if -0.5 <= ix <= iw + 0.5 and -0.5 <= iy <= ih + 0.5:
+                pts.append((ix, iy))
+
+        if len(pts) < 2:
+            return
+
+        cx1, cy1 = self._image_to_canvas_coords(pts[0][0], pts[0][1])
+        cx2, cy2 = self._image_to_canvas_coords(pts[-1][0], pts[-1][1])
+        painter.setPen(pen)
+        painter.drawLine(cx1, cy1, cx2, cy2)
 
     def sizeHint(self):
         """Vrátí doporučenou velikost - co největší"""
@@ -317,6 +358,81 @@ class PointsOverlay(QWidget):
                 painter.setPen(QPen(QColor(0, 255, 0), 1))  # Radioaktivní zelená ☢️
                 painter.setFont(QFont("Arial", PICTURE_FONT_SIZE))
                 painter.drawText(canvas_x + radius + 2, canvas_y + radius + 2, point_label)
+
+        # === METRICS OVERLAY ===
+        if self.metrics_visible and self.vertebral_points:
+            pts = {label: (p.x, p.y) for label, p in self.vertebral_points.items()}
+
+            # --- Cobb C2-C7: C2 bottom endplate (blue) + C7 bottom endplate (cyan) ---
+            if "C2 bottom left" in pts and "C2 bottom right" in pts:
+                self._draw_extended_line(
+                    painter, pts["C2 bottom left"], pts["C2 bottom right"],
+                    QPen(QColor(80, 130, 255), 2)
+                )
+            if "C7 bottom left" in pts and "C7 bottom right" in pts:
+                self._draw_extended_line(
+                    painter, pts["C7 bottom left"], pts["C7 bottom right"],
+                    QPen(QColor(0, 210, 220), 2)
+                )
+
+            # --- SVA: vertical at C2 centroid (orange) + horizontal to C7 top left ---
+            if "C2 centroid" in pts and "C7 top left" in pts:
+                cx2, cy2 = self._image_to_canvas_coords(*pts["C2 centroid"])
+                cx7, cy7 = self._image_to_canvas_coords(*pts["C7 top left"])
+                sva_pen = QPen(QColor(255, 160, 0), 2)
+                painter.setPen(sva_pen)
+                # Vertical line at C2 centroid x from top to C7 top left y
+                canvas_top = self._image_to_canvas_coords(pts["C2 centroid"][0], 0)[1]
+                painter.drawLine(cx2, canvas_top, cx2, cy7)
+                # Horizontal from C2 centroid x to C7 top left x at C7 top left y
+                painter.drawLine(cx2, cy7, cx7, cy7)
+
+            # --- C2 slope: horizontal reference line through mid of C2 bottom (grey) ---
+            if "C2 bottom left" in pts and "C2 bottom right" in pts:
+                blx, bly = pts["C2 bottom left"]
+                brx, bry = pts["C2 bottom right"]
+                mid_y = (bly + bry) / 2.0
+                if self.image:
+                    self._draw_extended_line(
+                        painter, (0, mid_y), (self.image.width(), mid_y),
+                        QPen(QColor(180, 180, 180), 1)
+                    )
+
+            # --- Metric value labels in top-left corner ---
+            import math as _math
+            label_lines = []
+            if "C2 bottom left" in pts and "C2 bottom right" in pts and "C7 bottom left" in pts and "C7 bottom right" in pts:
+                c2l, c2r = pts["C2 bottom left"], pts["C2 bottom right"]
+                c7l, c7r = pts["C7 bottom left"], pts["C7 bottom right"]
+                v1 = (c2r[0]-c2l[0], c2r[1]-c2l[1])
+                v2 = (c7r[0]-c7l[0], c7r[1]-c7l[1])
+                import numpy as _np
+                v1a = _np.array(v1, dtype=float); v2a = _np.array(v2, dtype=float)
+                dot = float(_np.dot(v1a, v2a))
+                det = float(v1a[0]*v2a[1] - v1a[1]*v2a[0])
+                cobb = abs(_math.degrees(_math.atan2(det, dot)))
+                label_lines.append(f"Cobb C2-C7: {cobb:.1f}\u00b0")
+            if "C2 centroid" in pts and "C7 top left" in pts:
+                sva = pts["C2 centroid"][0] - pts["C7 top left"][0]
+                label_lines.append(f"SVA: {sva:.0f} px")
+            if "C2 bottom left" in pts and "C2 bottom right" in pts:
+                c2l, c2r = pts["C2 bottom left"], pts["C2 bottom right"]
+                slope = -_math.degrees(_math.atan2(c2r[1]-c2l[1], c2r[0]-c2l[0]))
+                label_lines.append(f"C2 Slope: {slope:.1f}\u00b0")
+
+            if label_lines:
+                painter.setFont(QFont("Arial", 9, weight=QFont.Bold))
+                fm = painter.fontMetrics()
+                line_h = fm.height() + 2
+                pad = 6
+                box_w = max(fm.horizontalAdvance(t) for t in label_lines) + pad * 2
+                box_h = line_h * len(label_lines) + pad * 2
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QColor(0, 0, 0, 140))
+                painter.drawRoundedRect(6, 6, box_w, box_h, 5, 5)
+                painter.setPen(QPen(QColor(255, 255, 255), 1))
+                for i, text in enumerate(label_lines):
+                    painter.drawText(6 + pad, 6 + pad + fm.ascent() + i * line_h, text)
 
         # === ZOOM INDICATOR - v pravém horním rohu ===
         zoom_text = f"Zoom: {self.zoom_level:.2f}x"
@@ -638,9 +754,45 @@ class ImageCanvasPanel(QWidget):
         self.canvas.pointMoved.connect(self._on_point_moved)  # Phase 3.4: Relay pointMoved signal
         layout.addWidget(self.canvas, stretch=1)  # DŮLEŽITÉ: stretch=1 aby se expandoval!
 
+        # Canvas toolbar (always present)
+        canvas_toolbar = QHBoxLayout()
+        canvas_toolbar.setContentsMargins(4, 2, 4, 2)
+        canvas_toolbar.setSpacing(4)
+
+        self.metrics_btn = QPushButton("Metriky")
+        self.metrics_btn.setCheckable(True)
+        self.metrics_btn.setChecked(False)
+        self.metrics_btn.setEnabled(False)
+        self.metrics_btn.setFixedHeight(24)
+        self.metrics_btn.setCursor(Qt.PointingHandCursor)
+        self.metrics_btn.setToolTip("Zobrazit / skrýt vizualizaci klinických metrik")
+        self.metrics_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e0e0e0;
+                border: 1px solid #999;
+                border-radius: 3px;
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #d0d0d0;
+            }
+            QPushButton:checked {
+                background-color: #3b82f6;
+                color: white;
+                font-weight: bold;
+            }
+            QPushButton:disabled {
+                color: #aaa;
+            }
+        """)
+        self.metrics_btn.toggled.connect(self.canvas.set_metrics_visible)
+        canvas_toolbar.addWidget(self.metrics_btn)
+        canvas_toolbar.addStretch()
+        layout.addLayout(canvas_toolbar)
+
         # Segmentation mask toggle toolbar (only when feature is enabled in config)
         if ENABLE_SEGMENTATION_MASK:
-            from PySide6.QtWidgets import QPushButton
             toolbar = QHBoxLayout()
             toolbar.setContentsMargins(4, 2, 4, 2)
             toolbar.setSpacing(4)
@@ -694,7 +846,14 @@ class ImageCanvasPanel(QWidget):
         """Nastav novou paletu barev pro body (per-model)"""
         self.canvas.set_point_colors(colors_dict)
 
+    def set_metrics_visible(self, visible: bool):
+        """Enable metrics toggle button and set its checked state."""
+        self.metrics_btn.setEnabled(True)
+        self.metrics_btn.setChecked(visible)
+        self.canvas.set_metrics_visible(visible)
+
     def _on_point_selected(self, point_id: str):
+#FIXME: focus on point se volá i při kliknutí na bod v kanvasu, má se volat jen při kliknutí v tabulce. Nutno řešit, kamera pak škube i s bodem který se přetáhne mimo úplně. Možná řešení: rozlišit zdroj výběru (canvas vs tabulka) pomocí flagu, nebo emitovat jiný signal pro výběr z tabulky.
         """Canvas vybral bod -> emit signal + auto-focus"""
         self.pointSelected.emit(point_id)
         # Auto-focus: zoomuj a centruj na bod
