@@ -853,6 +853,7 @@ class ImageCanvasPanel(QWidget):
         self.canvas.set_metrics_visible(visible)
 
     def _on_point_selected(self, point_id: str):
+#FIXME: focus on point se volá i při kliknutí na bod v kanvasu, má se volat jen při kliknutí v tabulce. Nutno řešit, kamera pak škube i s bodem který se přetáhne mimo úplně. Možná řešení: rozlišit zdroj výběru (canvas vs tabulka) pomocí flagu, nebo emitovat jiný signal pro výběr z tabulky.
         """Canvas vybral bod -> emit signal + auto-focus"""
         self.pointSelected.emit(point_id)
         # Auto-focus: zoomuj a centruj na bod
